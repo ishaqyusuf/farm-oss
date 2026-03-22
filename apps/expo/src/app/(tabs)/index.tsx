@@ -1,4 +1,3 @@
-import { Link } from "expo-router";
 import { ActivityIndicator, View } from "react-native";
 import { Button, Card, Screen, Text } from "@/components/ui";
 import { useDashboardData } from "@/hooks/use-dashboard-data";
@@ -18,14 +17,10 @@ export default function HomeScreen() {
         style={{ gap: spacing[3.5], padding: spacing[6], borderRadius: 28 }}
       >
         <Text variant="tag" color="accent" theme={t}>
-          Mobile
+          Dashboard
         </Text>
         <Text variant="hero" theme={t}>
-          Farm records in your pocket.
-        </Text>
-        <Text variant="body" color="textSecondary" theme={t}>
-          Expo is now wired to the Farm OSS API through tRPC, with a lightweight
-          mobile auth session.
+          Farm records{"\n"}in your pocket.
         </Text>
         {!isHydrated ? (
           <ActivityIndicator color={t.accent} />
@@ -51,11 +46,6 @@ export default function HomeScreen() {
             Demo sign in
           </Button>
         )}
-        <Link asChild href="/record">
-          <Button variant="outline" theme={t}>
-            Open sample daily record
-          </Button>
-        </Link>
       </Card>
 
       <Card variant="subtle" theme={t}>
@@ -71,12 +61,11 @@ export default function HomeScreen() {
 
       <Card variant="subtle" theme={t}>
         <Text variant="title" theme={t}>
-          Design system
+          Getting started
         </Text>
         <Text variant="detail" color="textTertiary" theme={t}>
-          Card, Button, Text, Input, and Screen components now use centralized
-          theme tokens. Open the daily record screen to see the light theme
-          variant.
+          Use the Record tab to log daily flock activity. View past entries in
+          the History tab.
         </Text>
       </Card>
     </Screen>

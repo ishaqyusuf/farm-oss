@@ -9,7 +9,7 @@ This file tracks work currently being executed.
 - Remove completed items to `done.md`.
 
 ## In Progress
-- None currently.
+- Wire Expo daily record flow: tab navigation, form state + tRPC mutation, history screen.
 
 ## Status Notes
 - Domain modeling task completed 2026-03-22. See done.md for details.
