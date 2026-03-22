@@ -1,20 +1,18 @@
 import { useQuery } from "@tanstack/react-query";
 import { View } from "react-native";
 import { Card, Screen, Text } from "@/components/ui";
+import { PLACEHOLDER_FLOCK_BATCH_ID } from "@/lib/constants";
 import { dark, spacing } from "@/theme";
 import { useTRPC } from "@/trpc/client";
 
 const t = dark;
-
-/** Demo flock batch ID — will be replaced by a flock selector. */
-const DEMO_FLOCK_BATCH_ID = "00000000-0000-0000-0000-000000000001";
 
 export default function HistoryScreen() {
   const trpc = useTRPC();
 
   const records = useQuery(
     trpc.dailyRecord.list.queryOptions({
-      flockBatchId: DEMO_FLOCK_BATCH_ID,
+      flockBatchId: PLACEHOLDER_FLOCK_BATCH_ID,
       limit: 20,
     }),
   );

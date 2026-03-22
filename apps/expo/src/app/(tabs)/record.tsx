@@ -2,6 +2,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { ActivityIndicator, Alert, View } from "react-native";
 import { Button, Card, Input, Screen, Text } from "@/components/ui";
+import { PLACEHOLDER_FLOCK_BATCH_ID } from "@/lib/constants";
 import { useAuth } from "@/providers/auth-provider";
 import { light, spacing } from "@/theme";
 import { useTRPC } from "@/trpc/client";
@@ -49,11 +50,8 @@ export default function RecordScreen() {
       return;
     }
 
-    // Demo flock batch ID — in production this comes from a flock selector
-    const demoFlockBatchId = "00000000-0000-0000-0000-000000000001";
-
     createRecord.mutate({
-      flockBatchId: demoFlockBatchId,
+      flockBatchId: PLACEHOLDER_FLOCK_BATCH_ID,
       recordDate: todayISO(),
       feedGrams: feedKg ? Math.round(Number(feedKg) * 1000) : undefined,
       eggCount: eggCount ? Number(eggCount) : undefined,

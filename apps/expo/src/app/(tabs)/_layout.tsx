@@ -2,7 +2,7 @@ import { Tabs } from "expo-router";
 import { Text as RNText } from "react-native";
 import { dark } from "@/theme";
 
-function TabIcon({ label }: { label: string; color: string }) {
+function TabIcon({ label }: { label: string }) {
   return <RNText style={{ fontSize: 20 }}>{label}</RNText>;
 }
 
@@ -30,21 +30,21 @@ export default function TabLayout() {
         name="index"
         options={{
           title: "Home",
-          tabBarIcon: ({ color }) => <TabIcon label="🏠" color={color} />,
+          tabBarIcon: () => <TabIcon label="🏠" />,
         }}
       />
       <Tabs.Screen
         name="record"
         options={{
           title: "Record",
-          tabBarIcon: ({ color }) => <TabIcon label="✏️" color={color} />,
+          tabBarIcon: () => <TabIcon label="✏️" />,
         }}
       />
       <Tabs.Screen
         name="history"
         options={{
           title: "History",
-          tabBarIcon: ({ color }) => <TabIcon label="📋" color={color} />,
+          tabBarIcon: () => <TabIcon label="📋" />,
         }}
       />
     </Tabs>

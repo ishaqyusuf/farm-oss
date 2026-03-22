@@ -9,8 +9,9 @@ This file captures upcoming work that has not yet started.
 - Keep each task focused and outcome-based.
 
 ## Backlog
-- Design low-friction daily record entry flow.
 - Define dashboard metrics for flock performance and profitability.
+- Add flock batch selector to mobile record flow (currently uses demo ID).
 - Connect desktop shell to authenticated dashboard flow and native app assets.
-- Wire Expo app to real auth and farm daily-record APIs.
+- Implement real authentication (replace hardcoded demo auth).
 - Share auth and data hooks across Expo and dashboard once web auth is introduced.
+- Add expense and sale entry screens to mobile app.
