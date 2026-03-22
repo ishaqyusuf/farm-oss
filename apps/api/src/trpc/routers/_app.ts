@@ -15,16 +15,16 @@ export const appRouter = createTRPCRouter({
           email: "manager@farmoss.app",
           id: "user-owner-001",
           name: "Farm Manager",
-          role: "owner" as const
-        }
+          role: "owner" as const,
+        },
       };
     }),
     signIn: publicProcedure
       .input(
         z.object({
           email: z.string().email(),
-          password: z.string().min(4)
-        })
+          password: z.string().min(4),
+        }),
       )
       .mutation(({ input }) => {
         return {
@@ -33,10 +33,10 @@ export const appRouter = createTRPCRouter({
             email: input.email,
             id: "user-owner-001",
             name: "Farm Manager",
-            role: "owner" as const
-          }
+            role: "owner" as const,
+          },
         };
-      })
+      }),
   }),
   dailyRecord: dailyRecordRouter,
   expense: expenseRouter,
@@ -45,10 +45,10 @@ export const appRouter = createTRPCRouter({
   health: publicProcedure.query(() => {
     return {
       status: "ok",
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
   }),
-  sale: saleRouter
+  sale: saleRouter,
 });
 
 export type AppRouter = typeof appRouter;

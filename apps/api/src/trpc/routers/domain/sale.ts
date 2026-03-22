@@ -7,18 +7,18 @@ export const saleRouter = createTRPCRouter({
       z.object({
         farmId: z.string().uuid(),
         flockBatchId: z.string().uuid().optional(),
-        limit: z.number().int().min(1).max(100).default(30)
-      })
+        limit: z.number().int().min(1).max(100).default(30),
+      }),
     )
     .query(async ({ ctx, input }) => {
       const sales = await ctx.db.sale.findMany({
         where: {
           farmId: input.farmId,
           deletedAt: null,
-          ...(input.flockBatchId && { flockBatchId: input.flockBatchId })
+          ...(input.flockBatchId && { flockBatchId: input.flockBatchId }),
         },
         orderBy: { saleDate: "desc" },
-        take: input.limit
+        take: input.limit,
       });
 
       return sales;
@@ -35,8 +35,8 @@ export const saleRouter = createTRPCRouter({
         unitPrice: z.number().int().positive().optional(),
         totalAmount: z.number().int().positive(),
         currency: z.string().length(3).default("NGN"),
-        saleDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/)
-      })
+        saleDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const sale = await ctx.db.sale.create({
@@ -49,10 +49,10 @@ export const saleRouter = createTRPCRouter({
           unitPrice: input.unitPrice,
           totalAmount: input.totalAmount,
           currency: input.currency,
-          saleDate: new Date(input.saleDate)
-        }
+          saleDate: new Date(input.saleDate),
+        },
       });
 
       return sale;
-    })
+    }),
 });

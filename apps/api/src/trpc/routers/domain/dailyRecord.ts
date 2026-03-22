@@ -6,14 +6,14 @@ export const dailyRecordRouter = createTRPCRouter({
     .input(
       z.object({
         flockBatchId: z.string().uuid(),
-        limit: z.number().int().min(1).max(100).default(30)
-      })
+        limit: z.number().int().min(1).max(100).default(30),
+      }),
     )
     .query(async ({ ctx, input }) => {
       const records = await ctx.db.dailyRecord.findMany({
         where: { flockBatchId: input.flockBatchId },
         orderBy: { recordDate: "desc" },
-        take: input.limit
+        take: input.limit,
       });
 
       return records;
@@ -22,16 +22,16 @@ export const dailyRecordRouter = createTRPCRouter({
   get: publicProcedure
     .input(
       z.object({
-        id: z.string().uuid()
-      })
+        id: z.string().uuid(),
+      }),
     )
     .query(async ({ ctx, input }) => {
       const record = await ctx.db.dailyRecord.findUnique({
         where: { id: input.id },
         include: {
           flockBatch: { select: { id: true, name: true, birdType: true } },
-          recorder: { select: { id: true, name: true } }
-        }
+          recorder: { select: { id: true, name: true } },
+        },
       });
 
       return record;
@@ -47,8 +47,8 @@ export const dailyRecordRouter = createTRPCRouter({
         mortality: z.number().int().min(0).default(0),
         mortalityNotes: z.string().optional(),
         notes: z.string().optional(),
-        recordedBy: z.string().uuid().optional()
-      })
+        recordedBy: z.string().uuid().optional(),
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const record = await ctx.db.$transaction(async (tx) => {
@@ -61,14 +61,14 @@ export const dailyRecordRouter = createTRPCRouter({
             mortality: input.mortality,
             mortalityNotes: input.mortalityNotes,
             notes: input.notes,
-            recordedBy: input.recordedBy
-          }
+            recordedBy: input.recordedBy,
+          },
         });
 
         if (input.mortality > 0) {
           await tx.flockBatch.update({
             where: { id: input.flockBatchId },
-            data: { currentCount: { decrement: input.mortality } }
+            data: { currentCount: { decrement: input.mortality } },
           });
         }
 
@@ -86,14 +86,14 @@ export const dailyRecordRouter = createTRPCRouter({
         feedGrams: z.number().int().min(0).optional(),
         mortality: z.number().int().min(0).optional(),
         mortalityNotes: z.string().optional(),
-        notes: z.string().optional()
-      })
+        notes: z.string().optional(),
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const { id, ...data } = input;
 
       const existing = await ctx.db.dailyRecord.findUnique({
-        where: { id }
+        where: { id },
       });
       if (!existing) {
         throw new Error("Record not found");
@@ -106,22 +106,27 @@ export const dailyRecordRouter = createTRPCRouter({
             ...(data.eggCount !== undefined && { eggCount: data.eggCount }),
             ...(data.feedGrams !== undefined && { feedGrams: data.feedGrams }),
             ...(data.mortality !== undefined && { mortality: data.mortality }),
-            ...(data.mortalityNotes !== undefined && { mortalityNotes: data.mortalityNotes }),
-            ...(data.notes !== undefined && { notes: data.notes })
-          }
+            ...(data.mortalityNotes !== undefined && {
+              mortalityNotes: data.mortalityNotes,
+            }),
+            ...(data.notes !== undefined && { notes: data.notes }),
+          },
         });
 
-        if (data.mortality !== undefined && data.mortality !== existing.mortality) {
+        if (
+          data.mortality !== undefined &&
+          data.mortality !== existing.mortality
+        ) {
           const diff = data.mortality - existing.mortality;
           if (diff > 0) {
             await tx.flockBatch.update({
               where: { id: existing.flockBatchId },
-              data: { currentCount: { decrement: diff } }
+              data: { currentCount: { decrement: diff } },
             });
           } else {
             await tx.flockBatch.update({
               where: { id: existing.flockBatchId },
-              data: { currentCount: { increment: Math.abs(diff) } }
+              data: { currentCount: { increment: Math.abs(diff) } },
             });
           }
         }
@@ -136,8 +141,11 @@ export const dailyRecordRouter = createTRPCRouter({
     .input(
       z.object({
         farmId: z.string().uuid(),
-        date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional()
-      })
+        date: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
+          .optional(),
+      }),
     )
     .query(async ({ ctx, input }) => {
       const targetDate = input.date ?? new Date().toISOString().slice(0, 10);
@@ -145,11 +153,11 @@ export const dailyRecordRouter = createTRPCRouter({
       const records = await ctx.db.dailyRecord.findMany({
         where: {
           recordDate: new Date(targetDate),
-          flockBatch: { farmId: input.farmId, deletedAt: null }
+          flockBatch: { farmId: input.farmId, deletedAt: null },
         },
         include: {
-          flockBatch: { select: { id: true, name: true, birdType: true } }
-        }
+          flockBatch: { select: { id: true, name: true, birdType: true } },
+        },
       });
 
       const eggCount = records.reduce((sum, r) => sum + (r.eggCount ?? 0), 0);
@@ -162,7 +170,7 @@ export const dailyRecordRouter = createTRPCRouter({
         feedGrams,
         mortality,
         recordCount: records.length,
-        records
+        records,
       };
-    })
+    }),
 });

@@ -5,13 +5,13 @@ export const farmRouter = createTRPCRouter({
   list: publicProcedure
     .input(
       z.object({
-        tenantId: z.string().uuid()
-      })
+        tenantId: z.string().uuid(),
+      }),
     )
     .query(async ({ ctx, input }) => {
       const farms = await ctx.db.farm.findMany({
         where: { tenantId: input.tenantId, deletedAt: null },
-        orderBy: { name: "asc" }
+        orderBy: { name: "asc" },
       });
 
       return farms;
@@ -20,8 +20,8 @@ export const farmRouter = createTRPCRouter({
   get: publicProcedure
     .input(
       z.object({
-        id: z.string().uuid()
-      })
+        id: z.string().uuid(),
+      }),
     )
     .query(async ({ ctx, input }) => {
       const farm = await ctx.db.farm.findFirst({
@@ -29,9 +29,9 @@ export const farmRouter = createTRPCRouter({
         include: {
           flockBatches: {
             where: { deletedAt: null, status: "active" },
-            orderBy: { startDate: "desc" }
-          }
-        }
+            orderBy: { startDate: "desc" },
+          },
+        },
       });
 
       return farm;
@@ -42,16 +42,16 @@ export const farmRouter = createTRPCRouter({
       z.object({
         tenantId: z.string().uuid(),
         name: z.string().min(1),
-        location: z.string().optional()
-      })
+        location: z.string().optional(),
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const farm = await ctx.db.farm.create({
         data: {
           tenantId: input.tenantId,
           name: input.name,
-          location: input.location
-        }
+          location: input.location,
+        },
       });
 
       return farm;
@@ -62,16 +62,16 @@ export const farmRouter = createTRPCRouter({
       z.object({
         id: z.string().uuid(),
         name: z.string().min(1).optional(),
-        location: z.string().optional()
-      })
+        location: z.string().optional(),
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const farm = await ctx.db.farm.update({
         where: { id: input.id },
         data: {
           ...(input.name !== undefined && { name: input.name }),
-          ...(input.location !== undefined && { location: input.location })
-        }
+          ...(input.location !== undefined && { location: input.location }),
+        },
       });
 
       return farm;
@@ -80,15 +80,15 @@ export const farmRouter = createTRPCRouter({
   delete: publicProcedure
     .input(
       z.object({
-        id: z.string().uuid()
-      })
+        id: z.string().uuid(),
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       await ctx.db.farm.update({
         where: { id: input.id },
-        data: { deletedAt: new Date() }
+        data: { deletedAt: new Date() },
       });
 
       return { success: true };
-    })
+    }),
 });
