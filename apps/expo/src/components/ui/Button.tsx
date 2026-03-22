@@ -34,6 +34,12 @@ export function Button({
   ...rest
 }: Props) {
   const variantClass = variantThemeClasses[theme][variant];
+  const textColorClass =
+    variant === "primary"
+      ? theme === "dark"
+        ? "text-dark-accent-text"
+        : "text-light-accent-text"
+      : "";
 
   return (
     <Pressable
@@ -44,7 +50,7 @@ export function Button({
         <Text
           variant="label"
           theme={theme}
-          className={`text-base ${variant === "primary" ? (theme === "dark" ? "text-dark-accent-text" : "text-light-accent-text") : ""}`}
+          className={`text-base ${textColorClass}`}
         >
           {children}
         </Text>
