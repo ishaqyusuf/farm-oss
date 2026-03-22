@@ -10,9 +10,9 @@ function TabIcon({ label }: { label: string }) {
 }
 
 export default function TabLayout() {
-  const { theme, isDark } = useTheme();
+  const { isDark } = useTheme();
   const { session } = useAuth();
-  const { pendingCount, status } = useSync();
+  const { pendingCount } = useSync();
   const role = session?.user.role;
 
   /** Whether the current user may see a given tab. */

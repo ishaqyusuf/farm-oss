@@ -48,6 +48,8 @@ export function SyncProvider({
   const [status, setStatus] = useState<SyncStatus>("idle");
   const [pendingCount, setPendingCount] = useState(0);
   const syncingRef = useRef(false);
+  const trpcRef = useRef(trpc);
+  trpcRef.current = trpc;
 
   // Refresh the pending count from storage.
   const refreshCount = useCallback(async () => {
@@ -64,7 +66,7 @@ export function SyncProvider({
           string,
         ];
         // biome-ignore lint/suspicious/noExplicitAny: dynamic tRPC dispatch
-        const router = (trpc as any)[routerName];
+        const router = (trpcRef.current as any)[routerName];
         if (!router) return false;
         const procedure = router[procedureName];
         if (!procedure?.mutate) return false;
@@ -77,12 +79,13 @@ export function SyncProvider({
         return false;
       }
     },
-    [trpc],
+    [],
   );
 
-  // Attempt to flush the entire queue.
-  const syncNow = useCallback(async () => {
-    if (syncingRef.current || !isOnline) return;
+  // Attempt to flush the entire queue — stable reference via ref.
+  const syncNowRef = useRef<() => Promise<void>>(async () => {});
+  syncNowRef.current = async () => {
+    if (syncingRef.current) return;
     syncingRef.current = true;
     setStatus("syncing");
 
@@ -98,10 +101,12 @@ export function SyncProvider({
 
     await refreshCount();
     syncingRef.current = false;
-    setStatus(isOnline ? "idle" : "offline");
-  }, [isOnline, processAction, refreshCount]);
+    setStatus("idle");
+  };
 
-  // Monitor network state.
+  const syncNow = useCallback(() => syncNowRef.current(), []);
+
+  // Monitor network state — runs once.
   useEffect(() => {
     const unsubscribe = NetInfo.addEventListener((state) => {
       const online = !!state.isConnected && !!state.isInternetReachable;
@@ -110,17 +115,17 @@ export function SyncProvider({
 
       // Auto-sync when coming back online
       if (online) {
-        syncNow();
+        syncNowRef.current();
       }
     });
 
-    // Initial check
+    // Initial pending count
     refreshCount();
 
     return () => {
       unsubscribe();
     };
-  }, [syncNow, refreshCount]);
+  }, [refreshCount]);
 
   return (
     <SyncContext.Provider
