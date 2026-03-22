@@ -55,15 +55,11 @@ export default function CagesScreen() {
   const cages = useQuery(cageListOpts);
 
   // ── Production history query (only when viewing detail) ─────────────
-  const productionHistoryOpts = selectedCageId
-    ? trpc.cageProduction.list.queryOptions({
-        cageUnitId: selectedCageId,
-        limit: 14,
-      })
-    : null;
-
   const productionHistory = useQuery({
-    ...(productionHistoryOpts ?? { queryKey: ["noop"], queryFn: () => [] }),
+    ...trpc.cageProduction.list.queryOptions({
+      cageUnitId: selectedCageId ?? "",
+      limit: 14,
+    }),
     enabled: viewMode === "detail" && !!selectedCageId,
   });
 
@@ -271,14 +267,7 @@ export default function CagesScreen() {
   // ── Cage detail / history view ──────────────────────────────────────
   if (viewMode === "detail" && selectedCageId) {
     const selectedCage = cages.data?.find((c) => c.id === selectedCageId);
-    const history = (productionHistory.data ?? []) as Array<{
-      id: string;
-      recordDate: string | Date;
-      eggCount: number;
-      feedGrams: number | null;
-      mortality: number;
-      notes: string | null;
-    }>;
+    const history = productionHistory.data ?? [];
     return (
       <RoleGuard allowed={SCREEN_ROLES.cages}>
         <Screen theme={theme}>
