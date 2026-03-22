@@ -4,10 +4,10 @@ import { ActivityIndicator, Alert, View } from "react-native";
 import { Button, Card, Input, Screen, Text } from "@/components/ui";
 import { PLACEHOLDER_FLOCK_BATCH_ID } from "@/lib/constants";
 import { useAuth } from "@/providers/auth-provider";
-import { light, spacing } from "@/theme";
+import { light } from "@/theme";
 import { useTRPC } from "@/trpc/client";
 
-const t = light;
+const theme = "light" as const;
 
 /** Format today as YYYY-MM-DD. */
 function todayISO() {
@@ -63,15 +63,15 @@ export default function RecordScreen() {
   const isBusy = createRecord.isPending;
 
   return (
-    <Screen theme={t}>
-      <Card theme={t}>
-        <Text variant="tag" color="accent" theme={t}>
+    <Screen theme={theme}>
+      <Card theme={theme}>
+        <Text variant="tag" theme={theme} className="text-light-accent">
           Quick entry
         </Text>
-        <Text variant="heading" theme={t}>
+        <Text variant="heading" theme={theme}>
           Record today's flock activity in under a minute.
         </Text>
-        <Text variant="caption" color="textTertiary" theme={t}>
+        <Text variant="caption" theme={theme} className="text-light-text-tertiary">
           {todayISO()}
         </Text>
       </Card>
@@ -82,7 +82,7 @@ export default function RecordScreen() {
         value={feedKg}
         onChangeText={setFeedKg}
         keyboardType="numeric"
-        theme={t}
+        theme={theme}
       />
 
       <Input
@@ -91,7 +91,7 @@ export default function RecordScreen() {
         value={eggCount}
         onChangeText={setEggCount}
         keyboardType="numeric"
-        theme={t}
+        theme={theme}
       />
 
       <Input
@@ -100,7 +100,7 @@ export default function RecordScreen() {
         value={mortality}
         onChangeText={setMortality}
         keyboardType="numeric"
-        theme={t}
+        theme={theme}
       />
 
       <Input
@@ -109,19 +109,19 @@ export default function RecordScreen() {
         value={notes}
         onChangeText={setNotes}
         multiline
-        theme={t}
+        theme={theme}
       />
 
-      <View style={{ gap: spacing[2.5] }}>
-        <Button theme={t} onPress={handleSave} disabled={isBusy}>
+      <View className="gap-2.5">
+        <Button theme={theme} onPress={handleSave} disabled={isBusy}>
           {isBusy ? (
-            <ActivityIndicator color={t.accentText} />
+            <ActivityIndicator color={light.accentText} />
           ) : (
             "Save daily record"
           )}
         </Button>
         {createRecord.isSuccess && (
-          <Text variant="caption" color="accent" theme={t}>
+          <Text variant="caption" theme={theme} className="text-light-accent">
             ✓ Record saved
           </Text>
         )}

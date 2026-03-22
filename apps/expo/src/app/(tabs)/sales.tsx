@@ -5,11 +5,10 @@ import { Button, Card, Input, Screen, Text } from "@/components/ui";
 import { PLACEHOLDER_FARM_ID } from "@/lib/constants";
 import { formatNaira, toKobo } from "@/lib/currency";
 import { useAuth } from "@/providers/auth-provider";
-import { light, spacing } from "@/theme";
-import { radii } from "@/theme/spacing";
+import { light } from "@/theme";
 import { useTRPC } from "@/trpc/client";
 
-const t = light;
+const theme = "light" as const;
 
 const SALE_TYPES = ["eggs", "birds", "other"] as const;
 
@@ -103,45 +102,35 @@ export default function SalesScreen() {
   // ── New sale form ───────────────────────────────────────────────────
   if (showForm) {
     return (
-      <Screen theme={t}>
-        <Card theme={t}>
-          <Text variant="tag" color="accent" theme={t}>
+      <Screen theme={theme}>
+        <Card theme={theme}>
+          <Text variant="tag" theme={theme} className="text-light-accent">
             New sale
           </Text>
-          <Text variant="heading" theme={t}>
+          <Text variant="heading" theme={theme}>
             Record a sale
           </Text>
         </Card>
 
-        <View style={{ gap: spacing[2] }}>
-          <Text variant="label" color="textSecondary" theme={t}>
+        <View className="gap-2">
+          <Text variant="label" theme={theme} className="text-light-text-secondary">
             Sale type
           </Text>
-          <View
-            style={{
-              flexDirection: "row",
-              flexWrap: "wrap",
-              gap: spacing[2],
-            }}
-          >
+          <View className="flex-row flex-wrap gap-2">
             {SALE_TYPES.map((st) => (
               <Pressable
                 key={st}
                 onPress={() => setSaleType(st)}
-                style={{
-                  backgroundColor: saleType === st ? t.accent : t.surface,
-                  borderColor: saleType === st ? t.accent : t.border,
-                  borderWidth: 1,
-                  borderRadius: radii.lg,
-                  paddingHorizontal: spacing[4],
-                  paddingVertical: spacing[2.5],
-                }}
+                className={`border rounded-2xl px-4 py-2.5 ${
+                  saleType === st
+                    ? "bg-light-accent border-light-accent"
+                    : "bg-light-surface border-light-border"
+                }`}
               >
                 <Text
                   variant="label"
-                  color={saleType === st ? "accentText" : "text"}
-                  theme={t}
-                  style={{ textTransform: "capitalize" }}
+                  theme={theme}
+                  className={`capitalize ${saleType === st ? "text-light-accent-text" : ""}`}
                 >
                   {st}
                 </Text>
@@ -156,7 +145,7 @@ export default function SalesScreen() {
           value={quantity}
           onChangeText={setQuantity}
           keyboardType="numeric"
-          theme={t}
+          theme={theme}
         />
 
         <Input
@@ -165,7 +154,7 @@ export default function SalesScreen() {
           value={unitPrice}
           onChangeText={setUnitPrice}
           keyboardType="numeric"
-          theme={t}
+          theme={theme}
         />
 
         <Input
@@ -178,7 +167,7 @@ export default function SalesScreen() {
           value={totalAmount}
           onChangeText={setTotalAmount}
           keyboardType="numeric"
-          theme={t}
+          theme={theme}
         />
 
         <Input
@@ -186,14 +175,14 @@ export default function SalesScreen() {
           placeholder="Crate sales – wholesale"
           value={description}
           onChangeText={setDescription}
-          theme={t}
+          theme={theme}
         />
 
-        <View style={{ gap: spacing[2.5] }}>
-          <Button theme={t} onPress={handleSave} disabled={isBusy}>
-            {isBusy ? <ActivityIndicator color={t.accentText} /> : "Save sale"}
+        <View className="gap-2.5">
+          <Button theme={theme} onPress={handleSave} disabled={isBusy}>
+            {isBusy ? <ActivityIndicator color={light.accentText} /> : "Save sale"}
           </Button>
-          <Button variant="ghost" theme={t} onPress={() => setShowForm(false)}>
+          <Button variant="ghost" theme={theme} onPress={() => setShowForm(false)}>
             Cancel
           </Button>
         </View>
@@ -203,78 +192,65 @@ export default function SalesScreen() {
 
   // ── Sales list ──────────────────────────────────────────────────────
   return (
-    <Screen theme={t}>
-      <Card
-        theme={t}
-        style={{ gap: spacing[3.5], padding: spacing[6], borderRadius: 28 }}
-      >
-        <Text variant="tag" color="accent" theme={t}>
+    <Screen theme={theme}>
+      <Card theme={theme} className="gap-3.5 p-6 rounded-[28px]">
+        <Text variant="tag" theme={theme} className="text-light-accent">
           Sales
         </Text>
-        <Text variant="heading" theme={t}>
+        <Text variant="heading" theme={theme}>
           Revenue log
         </Text>
-        <Button theme={t} onPress={() => setShowForm(true)}>
+        <Button theme={theme} onPress={() => setShowForm(true)}>
           + New sale
         </Button>
       </Card>
 
       {sales.isLoading && (
-        <Card variant="subtle" theme={t}>
-          <Text variant="detail" color="textTertiary" theme={t}>
+        <Card variant="subtle" theme={theme}>
+          <Text variant="detail" theme={theme} className="text-light-text-tertiary">
             Loading sales…
           </Text>
         </Card>
       )}
 
       {sales.isError && (
-        <Card variant="subtle" theme={t}>
-          <Text variant="detail" color="accent" theme={t}>
+        <Card variant="subtle" theme={theme}>
+          <Text variant="detail" theme={theme} className="text-light-accent">
             Could not load sales. The API may be offline or no farm exists yet.
           </Text>
         </Card>
       )}
 
       {sales.data?.length === 0 && (
-        <Card variant="subtle" theme={t}>
-          <Text variant="detail" color="textTertiary" theme={t}>
+        <Card variant="subtle" theme={theme}>
+          <Text variant="detail" theme={theme} className="text-light-text-tertiary">
             No sales yet. Tap "+ New sale" to add one.
           </Text>
         </Card>
       )}
 
       {sales.data?.map((sale) => (
-        <Card key={sale.id} variant="subtle" theme={t}>
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <Text
-              variant="label"
-              theme={t}
-              style={{ textTransform: "capitalize" }}
-            >
+        <Card key={sale.id} variant="subtle" theme={theme}>
+          <View className="flex-row justify-between items-center">
+            <Text variant="label" theme={theme} className="capitalize">
               {sale.saleType}
             </Text>
-            <Text variant="label" color="accent" theme={t}>
+            <Text variant="label" theme={theme} className="text-light-accent">
               {formatNaira(sale.totalAmount)}
             </Text>
           </View>
           {sale.quantity != null && (
-            <Text variant="detail" color="textSecondary" theme={t}>
+            <Text variant="detail" theme={theme} className="text-light-text-secondary">
               {sale.quantity} units
               {sale.unitPrice != null && ` × ${formatNaira(sale.unitPrice)}`}
             </Text>
           )}
           {sale.description && (
-            <Text variant="detail" color="textSecondary" theme={t}>
+            <Text variant="detail" theme={theme} className="text-light-text-secondary">
               {sale.description}
             </Text>
           )}
-          <Text variant="caption" color="textTertiary" theme={t}>
+          <Text variant="caption" theme={theme} className="text-light-text-tertiary">
             {new Date(sale.saleDate).toLocaleDateString("en-GB", {
               day: "numeric",
               month: "short",

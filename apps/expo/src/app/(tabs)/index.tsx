@@ -2,40 +2,37 @@ import { ActivityIndicator, View } from "react-native";
 import { Button, Card, Screen, Text } from "@/components/ui";
 import { useDashboardData } from "@/hooks/use-dashboard-data";
 import { useAuth } from "@/providers/auth-provider";
-import { dark, spacing } from "@/theme";
+import { dark } from "@/theme";
 
-const t = dark;
+const theme = "dark" as const;
 
 export default function HomeScreen() {
   const { isHydrated, session, signIn, signOut } = useAuth();
   const { health, summary, batches } = useDashboardData();
 
   return (
-    <Screen theme={t}>
-      <Card
-        theme={t}
-        style={{ gap: spacing[3.5], padding: spacing[6], borderRadius: 28 }}
-      >
-        <Text variant="tag" color="accent" theme={t}>
+    <Screen theme={theme}>
+      <Card theme={theme} className="gap-3.5 p-6 rounded-[28px]">
+        <Text variant="tag" theme={theme} className="text-dark-accent">
           Dashboard
         </Text>
-        <Text variant="hero" theme={t}>
+        <Text variant="hero" theme={theme}>
           Farm records{"\n"}in your pocket.
         </Text>
         {!isHydrated ? (
-          <ActivityIndicator color={t.accent} />
+          <ActivityIndicator color={dark.accent} />
         ) : session ? (
-          <View style={{ gap: spacing[2.5] }}>
-            <Text variant="detail" theme={t}>
+          <View className="gap-2.5">
+            <Text variant="detail" theme={theme}>
               Signed in as {session.user.name} ({session.user.role})
             </Text>
-            <Button theme={t} onPress={() => signOut()}>
+            <Button theme={theme} onPress={() => signOut()}>
               Sign out
             </Button>
           </View>
         ) : (
           <Button
-            theme={t}
+            theme={theme}
             onPress={() =>
               signIn({
                 email: "manager@farmoss.app",
@@ -49,29 +46,24 @@ export default function HomeScreen() {
       </Card>
 
       {/* ── Today's summary ──────────────────────────────────────────── */}
-      <Card variant="subtle" theme={t}>
-        <Text variant="title" theme={t}>
+      <Card variant="subtle" theme={theme}>
+        <Text variant="title" theme={theme}>
           Today's summary
         </Text>
         {summary.isLoading && (
-          <Text variant="detail" color="textTertiary" theme={t}>
+          <Text variant="detail" theme={theme} className="text-dark-text-tertiary">
             Loading metrics…
           </Text>
         )}
         {summary.isError && (
-          <Text variant="detail" color="textTertiary" theme={t}>
+          <Text variant="detail" theme={theme} className="text-dark-text-tertiary">
             Could not load summary. The API may be offline or no farm data
             exists yet.
           </Text>
         )}
         {summary.data && (
-          <View style={{ gap: spacing[2] }}>
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-              }}
-            >
+          <View className="gap-2">
+            <View className="flex-row justify-between">
               <MetricCell label="🥚 Eggs" value={summary.data.eggCount} />
               <MetricCell
                 label="🌾 Feed"
@@ -79,7 +71,7 @@ export default function HomeScreen() {
               />
               <MetricCell label="⚠️ Mortality" value={summary.data.mortality} />
             </View>
-            <Text variant="caption" color="textTertiary" theme={t}>
+            <Text variant="caption" theme={theme} className="text-dark-text-tertiary">
               {summary.data.recordCount} record
               {summary.data.recordCount === 1 ? "" : "s"} for{" "}
               {summary.data.date}
@@ -89,38 +81,31 @@ export default function HomeScreen() {
       </Card>
 
       {/* ── Active batches ───────────────────────────────────────────── */}
-      <Card variant="subtle" theme={t}>
-        <Text variant="title" theme={t}>
+      <Card variant="subtle" theme={theme}>
+        <Text variant="title" theme={theme}>
           Active batches
         </Text>
         {batches.isLoading && (
-          <Text variant="detail" color="textTertiary" theme={t}>
+          <Text variant="detail" theme={theme} className="text-dark-text-tertiary">
             Loading batches…
           </Text>
         )}
         {batches.isError && (
-          <Text variant="detail" color="textTertiary" theme={t}>
+          <Text variant="detail" theme={theme} className="text-dark-text-tertiary">
             Could not load batches.
           </Text>
         )}
         {batches.data?.length === 0 && (
-          <Text variant="detail" color="textTertiary" theme={t}>
+          <Text variant="detail" theme={theme} className="text-dark-text-tertiary">
             No active batches.
           </Text>
         )}
         {batches.data?.map((batch) => (
-          <View
-            key={batch.id}
-            style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
-          >
-            <Text variant="detail" theme={t}>
+          <View key={batch.id} className="flex-row justify-between items-center">
+            <Text variant="detail" theme={theme}>
               {batch.name}
             </Text>
-            <Text variant="caption" color="accent" theme={t}>
+            <Text variant="caption" theme={theme} className="text-dark-accent">
               {batch.currentCount} birds
             </Text>
           </View>
@@ -128,11 +113,11 @@ export default function HomeScreen() {
       </Card>
 
       {/* ── API status ───────────────────────────────────────────────── */}
-      <Card variant="subtle" theme={t}>
-        <Text variant="title" theme={t}>
+      <Card variant="subtle" theme={theme}>
+        <Text variant="title" theme={theme}>
           API status
         </Text>
-        <Text variant="detail" color="textTertiary" theme={t}>
+        <Text variant="detail" theme={theme} className="text-dark-text-tertiary">
           {health.data
             ? `API is ${health.data.status} — ${health.data.timestamp}`
             : "Connecting to API..."}
@@ -151,11 +136,11 @@ function MetricCell({
   value: string | number;
 }) {
   return (
-    <View style={{ alignItems: "center", gap: spacing[1] }}>
-      <Text variant="caption" color="textTertiary" theme={dark}>
+    <View className="items-center gap-1">
+      <Text variant="caption" theme="dark" className="text-dark-text-tertiary">
         {label}
       </Text>
-      <Text variant="title" theme={dark}>
+      <Text variant="title" theme="dark">
         {value}
       </Text>
     </View>

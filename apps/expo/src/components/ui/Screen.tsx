@@ -1,34 +1,29 @@
 import type { ReactNode } from "react";
 import { ScrollView, type ScrollViewProps } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import type { ThemeColors } from "@/theme/colors";
-import { spacing } from "@/theme/spacing";
+
+type ThemeVariant = "dark" | "light";
 
 type Props = ScrollViewProps & {
-  theme?: ThemeColors;
+  theme?: ThemeVariant;
   children?: ReactNode;
 };
 
-/**
- * Full-screen wrapper: SafeAreaView + ScrollView with themed background.
- */
+const bgClasses: Record<ThemeVariant, string> = {
+  dark: "bg-dark-bg",
+  light: "bg-light-bg",
+};
+
 export function Screen({
-  theme,
+  theme = "dark",
   children,
-  contentContainerStyle,
+  className = "",
   ...rest
 }: Props) {
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme?.background }}>
+    <SafeAreaView className={`flex-1 ${bgClasses[theme]}`}>
       <ScrollView
-        contentContainerStyle={[
-          {
-            gap: spacing[5],
-            padding: spacing[5],
-            paddingBottom: spacing[9],
-          },
-          contentContainerStyle,
-        ]}
+        contentContainerClassName={`gap-5 p-5 pb-9 ${className}`.trim()}
         {...rest}
       >
         {children}
