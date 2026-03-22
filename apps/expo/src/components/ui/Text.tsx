@@ -1,7 +1,15 @@
 import type { ReactNode } from "react";
 import { Text as RNText, type TextProps } from "react-native";
 
-type Variant = "hero" | "heading" | "title" | "body" | "detail" | "label" | "caption" | "tag";
+type Variant =
+  | "hero"
+  | "heading"
+  | "title"
+  | "body"
+  | "detail"
+  | "label"
+  | "caption"
+  | "tag";
 type ThemeVariant = "dark" | "light";
 
 type Props = TextProps & {
@@ -36,9 +44,6 @@ export function Text({
   const themeClass = theme ? themeTextClasses[theme] : "";
 
   return (
-    <RNText
-      className={`${base} ${themeClass} ${className}`.trim()}
-      {...rest}
-    />
+    <RNText className={`${base} ${themeClass} ${className}`.trim()} {...rest} />
   );
 }

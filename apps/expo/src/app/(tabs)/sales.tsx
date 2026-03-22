@@ -5,7 +5,6 @@ import { Button, Card, Input, Screen, Text } from "@/components/ui";
 import { PLACEHOLDER_FARM_ID } from "@/lib/constants";
 import { formatNaira, toKobo } from "@/lib/currency";
 import { useAuth } from "@/providers/auth-provider";
-import { light } from "@/theme";
 import { useTRPC } from "@/trpc/client";
 
 const theme = "light" as const;
@@ -113,7 +112,11 @@ export default function SalesScreen() {
         </Card>
 
         <View className="gap-2">
-          <Text variant="label" theme={theme} className="text-light-text-secondary">
+          <Text
+            variant="label"
+            theme={theme}
+            className="text-light-text-secondary"
+          >
             Sale type
           </Text>
           <View className="flex-row flex-wrap gap-2">
@@ -180,9 +183,13 @@ export default function SalesScreen() {
 
         <View className="gap-2.5">
           <Button theme={theme} onPress={handleSave} disabled={isBusy}>
-            {isBusy ? <ActivityIndicator color={light.accentText} /> : "Save sale"}
+            {isBusy ? <ActivityIndicator color="#f6f1e6" /> : "Save sale"}
           </Button>
-          <Button variant="ghost" theme={theme} onPress={() => setShowForm(false)}>
+          <Button
+            variant="ghost"
+            theme={theme}
+            onPress={() => setShowForm(false)}
+          >
             Cancel
           </Button>
         </View>
@@ -207,7 +214,11 @@ export default function SalesScreen() {
 
       {sales.isLoading && (
         <Card variant="subtle" theme={theme}>
-          <Text variant="detail" theme={theme} className="text-light-text-tertiary">
+          <Text
+            variant="detail"
+            theme={theme}
+            className="text-light-text-tertiary"
+          >
             Loading sales…
           </Text>
         </Card>
@@ -223,7 +234,11 @@ export default function SalesScreen() {
 
       {sales.data?.length === 0 && (
         <Card variant="subtle" theme={theme}>
-          <Text variant="detail" theme={theme} className="text-light-text-tertiary">
+          <Text
+            variant="detail"
+            theme={theme}
+            className="text-light-text-tertiary"
+          >
             No sales yet. Tap "+ New sale" to add one.
           </Text>
         </Card>
@@ -240,17 +255,29 @@ export default function SalesScreen() {
             </Text>
           </View>
           {sale.quantity != null && (
-            <Text variant="detail" theme={theme} className="text-light-text-secondary">
+            <Text
+              variant="detail"
+              theme={theme}
+              className="text-light-text-secondary"
+            >
               {sale.quantity} units
               {sale.unitPrice != null && ` × ${formatNaira(sale.unitPrice)}`}
             </Text>
           )}
           {sale.description && (
-            <Text variant="detail" theme={theme} className="text-light-text-secondary">
+            <Text
+              variant="detail"
+              theme={theme}
+              className="text-light-text-secondary"
+            >
               {sale.description}
             </Text>
           )}
-          <Text variant="caption" theme={theme} className="text-light-text-tertiary">
+          <Text
+            variant="caption"
+            theme={theme}
+            className="text-light-text-tertiary"
+          >
             {new Date(sale.saleDate).toLocaleDateString("en-GB", {
               day: "numeric",
               month: "short",

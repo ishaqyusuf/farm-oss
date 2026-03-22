@@ -4,7 +4,6 @@ import { ActivityIndicator, Alert, View } from "react-native";
 import { Button, Card, Input, Screen, Text } from "@/components/ui";
 import { PLACEHOLDER_FLOCK_BATCH_ID } from "@/lib/constants";
 import { useAuth } from "@/providers/auth-provider";
-import { light } from "@/theme";
 import { useTRPC } from "@/trpc/client";
 
 const theme = "light" as const;
@@ -71,7 +70,11 @@ export default function RecordScreen() {
         <Text variant="heading" theme={theme}>
           Record today's flock activity in under a minute.
         </Text>
-        <Text variant="caption" theme={theme} className="text-light-text-tertiary">
+        <Text
+          variant="caption"
+          theme={theme}
+          className="text-light-text-tertiary"
+        >
           {todayISO()}
         </Text>
       </Card>
@@ -114,11 +117,7 @@ export default function RecordScreen() {
 
       <View className="gap-2.5">
         <Button theme={theme} onPress={handleSave} disabled={isBusy}>
-          {isBusy ? (
-            <ActivityIndicator color={light.accentText} />
-          ) : (
-            "Save daily record"
-          )}
+          {isBusy ? <ActivityIndicator color="#f6f1e6" /> : "Save daily record"}
         </Button>
         {createRecord.isSuccess && (
           <Text variant="caption" theme={theme} className="text-light-accent">

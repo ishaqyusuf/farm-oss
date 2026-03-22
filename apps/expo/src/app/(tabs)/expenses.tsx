@@ -5,7 +5,6 @@ import { Button, Card, Input, Screen, Text } from "@/components/ui";
 import { PLACEHOLDER_FARM_ID } from "@/lib/constants";
 import { formatNaira, toKobo } from "@/lib/currency";
 import { useAuth } from "@/providers/auth-provider";
-import { light } from "@/theme";
 import { useTRPC } from "@/trpc/client";
 
 const theme = "light" as const;
@@ -101,7 +100,11 @@ export default function ExpensesScreen() {
         </Card>
 
         <View className="gap-2">
-          <Text variant="label" theme={theme} className="text-light-text-secondary">
+          <Text
+            variant="label"
+            theme={theme}
+            className="text-light-text-secondary"
+          >
             Category
           </Text>
           <View className="flex-row flex-wrap gap-2">
@@ -146,13 +149,13 @@ export default function ExpensesScreen() {
 
         <View className="gap-2.5">
           <Button theme={theme} onPress={handleSave} disabled={isBusy}>
-            {isBusy ? (
-              <ActivityIndicator color={light.accentText} />
-            ) : (
-              "Save expense"
-            )}
+            {isBusy ? <ActivityIndicator color="#f6f1e6" /> : "Save expense"}
           </Button>
-          <Button variant="ghost" theme={theme} onPress={() => setShowForm(false)}>
+          <Button
+            variant="ghost"
+            theme={theme}
+            onPress={() => setShowForm(false)}
+          >
             Cancel
           </Button>
         </View>
@@ -177,7 +180,11 @@ export default function ExpensesScreen() {
 
       {expenses.isLoading && (
         <Card variant="subtle" theme={theme}>
-          <Text variant="detail" theme={theme} className="text-light-text-tertiary">
+          <Text
+            variant="detail"
+            theme={theme}
+            className="text-light-text-tertiary"
+          >
             Loading expenses…
           </Text>
         </Card>
@@ -194,7 +201,11 @@ export default function ExpensesScreen() {
 
       {expenses.data?.length === 0 && (
         <Card variant="subtle" theme={theme}>
-          <Text variant="detail" theme={theme} className="text-light-text-tertiary">
+          <Text
+            variant="detail"
+            theme={theme}
+            className="text-light-text-tertiary"
+          >
             No expenses yet. Tap "+ New expense" to add one.
           </Text>
         </Card>
@@ -211,11 +222,19 @@ export default function ExpensesScreen() {
             </Text>
           </View>
           {expense.description && (
-            <Text variant="detail" theme={theme} className="text-light-text-secondary">
+            <Text
+              variant="detail"
+              theme={theme}
+              className="text-light-text-secondary"
+            >
               {expense.description}
             </Text>
           )}
-          <Text variant="caption" theme={theme} className="text-light-text-tertiary">
+          <Text
+            variant="caption"
+            theme={theme}
+            className="text-light-text-tertiary"
+          >
             {new Date(expense.expenseDate).toLocaleDateString("en-GB", {
               day: "numeric",
               month: "short",

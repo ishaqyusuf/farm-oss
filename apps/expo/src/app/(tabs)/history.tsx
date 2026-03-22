@@ -25,14 +25,22 @@ export default function HistoryScreen() {
         <Text variant="heading" theme={theme}>
           Recent daily records
         </Text>
-        <Text variant="detail" theme={theme} className="text-dark-text-secondary">
+        <Text
+          variant="detail"
+          theme={theme}
+          className="text-dark-text-secondary"
+        >
           Showing the latest entries for the active flock batch.
         </Text>
       </Card>
 
       {records.isLoading && (
         <Card variant="subtle" theme={theme}>
-          <Text variant="detail" theme={theme} className="text-dark-text-tertiary">
+          <Text
+            variant="detail"
+            theme={theme}
+            className="text-dark-text-tertiary"
+          >
             Loading records…
           </Text>
         </Card>
@@ -49,7 +57,11 @@ export default function HistoryScreen() {
 
       {records.data?.length === 0 && (
         <Card variant="subtle" theme={theme}>
-          <Text variant="detail" theme={theme} className="text-dark-text-tertiary">
+          <Text
+            variant="detail"
+            theme={theme}
+            className="text-dark-text-tertiary"
+          >
             No records yet. Use the Record tab to create your first daily entry.
           </Text>
         </Card>
@@ -66,7 +78,11 @@ export default function HistoryScreen() {
               })}
             </Text>
             {record.mortality > 0 && (
-              <Text variant="caption" theme={theme} className="text-dark-accent">
+              <Text
+                variant="caption"
+                theme={theme}
+                className="text-dark-accent"
+              >
                 ⚠ {record.mortality} mortality
               </Text>
             )}
@@ -74,17 +90,29 @@ export default function HistoryScreen() {
 
           <View className="gap-1">
             {record.eggCount != null && (
-              <Text variant="detail" theme={theme} className="text-dark-text-secondary">
+              <Text
+                variant="detail"
+                theme={theme}
+                className="text-dark-text-secondary"
+              >
                 🥚 {record.eggCount} eggs
               </Text>
             )}
             {record.feedGrams != null && (
-              <Text variant="detail" theme={theme} className="text-dark-text-secondary">
+              <Text
+                variant="detail"
+                theme={theme}
+                className="text-dark-text-secondary"
+              >
                 🌾 {(record.feedGrams / 1000).toFixed(1)} kg feed
               </Text>
             )}
             {record.notes && (
-              <Text variant="caption" theme={theme} className="text-dark-text-tertiary">
+              <Text
+                variant="caption"
+                theme={theme}
+                className="text-dark-text-tertiary"
+              >
                 {record.notes}
               </Text>
             )}

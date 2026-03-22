@@ -9,7 +9,10 @@ type Props = ViewProps & {
   children?: ReactNode;
 };
 
-const themeClasses: Record<ThemeVariant, Record<"filled" | "subtle", string>> = {
+const themeClasses: Record<
+  ThemeVariant,
+  Record<"filled" | "subtle", string>
+> = {
   dark: {
     filled: "bg-dark-surface border-dark-border",
     subtle: "bg-dark-surface-subtle border-dark-border",

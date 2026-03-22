@@ -21,7 +21,7 @@ This file tracks the repository structure so contributors can quickly understand
 - `apps/api`: Hono API with database-backed REST and tRPC endpoints for all domain entities. Domain routers in `src/trpc/routers/domain/`.
 - `apps/dashboard`: Next.js dashboard using a `src/app` structure.
 - `apps/desktop`: Tauri desktop shell for the dashboard.
-- `apps/expo`: Expo Router mobile app with 5-tab layout (Home, Record, Expenses, Sales, History), design system (`src/theme/`, `src/components/ui/`), tRPC-wired daily record/expense/sale forms, dashboard with `dailyRecord.summary` metrics and active batch display, and lightweight auth state.
+- `apps/expo`: Expo Router mobile app with 5-tab layout (Home, Record, Expenses, Sales, History). Uses NativeWind v4 (Tailwind CSS) for styling with custom color tokens in `tailwind.config.js`. Reusable UI components in `src/components/ui/`. tRPC-wired daily record/expense/sale forms, dashboard with `dailyRecord.summary` metrics and active batch display, and lightweight auth state.
 - `apps/website`: Next.js marketing site using a `src/app` structure.
 
 ## Packages

@@ -8,7 +8,10 @@ type Props = TextInputProps & {
   theme?: ThemeVariant;
 };
 
-const themeInputClasses: Record<ThemeVariant, { input: string; placeholder: string }> = {
+const themeInputClasses: Record<
+  ThemeVariant,
+  { input: string; placeholder: string }
+> = {
   dark: {
     input: "bg-dark-surface border-dark-border text-dark-text",
     placeholder: "rgba(247,240,222,0.76)",
@@ -36,7 +39,11 @@ export function Input({
         <Text
           variant="label"
           theme={theme}
-          className={theme === "dark" ? "text-dark-text-secondary" : "text-light-text-secondary"}
+          className={
+            theme === "dark"
+              ? "text-dark-text-secondary"
+              : "text-light-text-secondary"
+          }
         >
           {label}
         </Text>

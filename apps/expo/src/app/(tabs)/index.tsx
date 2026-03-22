@@ -2,7 +2,6 @@ import { ActivityIndicator, View } from "react-native";
 import { Button, Card, Screen, Text } from "@/components/ui";
 import { useDashboardData } from "@/hooks/use-dashboard-data";
 import { useAuth } from "@/providers/auth-provider";
-import { dark } from "@/theme";
 
 const theme = "dark" as const;
 
@@ -20,7 +19,7 @@ export default function HomeScreen() {
           Farm records{"\n"}in your pocket.
         </Text>
         {!isHydrated ? (
-          <ActivityIndicator color={dark.accent} />
+          <ActivityIndicator color="#e9b949" />
         ) : session ? (
           <View className="gap-2.5">
             <Text variant="detail" theme={theme}>
@@ -51,12 +50,20 @@ export default function HomeScreen() {
           Today's summary
         </Text>
         {summary.isLoading && (
-          <Text variant="detail" theme={theme} className="text-dark-text-tertiary">
+          <Text
+            variant="detail"
+            theme={theme}
+            className="text-dark-text-tertiary"
+          >
             Loading metrics…
           </Text>
         )}
         {summary.isError && (
-          <Text variant="detail" theme={theme} className="text-dark-text-tertiary">
+          <Text
+            variant="detail"
+            theme={theme}
+            className="text-dark-text-tertiary"
+          >
             Could not load summary. The API may be offline or no farm data
             exists yet.
           </Text>
@@ -71,7 +78,11 @@ export default function HomeScreen() {
               />
               <MetricCell label="⚠️ Mortality" value={summary.data.mortality} />
             </View>
-            <Text variant="caption" theme={theme} className="text-dark-text-tertiary">
+            <Text
+              variant="caption"
+              theme={theme}
+              className="text-dark-text-tertiary"
+            >
               {summary.data.recordCount} record
               {summary.data.recordCount === 1 ? "" : "s"} for{" "}
               {summary.data.date}
@@ -86,22 +97,37 @@ export default function HomeScreen() {
           Active batches
         </Text>
         {batches.isLoading && (
-          <Text variant="detail" theme={theme} className="text-dark-text-tertiary">
+          <Text
+            variant="detail"
+            theme={theme}
+            className="text-dark-text-tertiary"
+          >
             Loading batches…
           </Text>
         )}
         {batches.isError && (
-          <Text variant="detail" theme={theme} className="text-dark-text-tertiary">
+          <Text
+            variant="detail"
+            theme={theme}
+            className="text-dark-text-tertiary"
+          >
             Could not load batches.
           </Text>
         )}
         {batches.data?.length === 0 && (
-          <Text variant="detail" theme={theme} className="text-dark-text-tertiary">
+          <Text
+            variant="detail"
+            theme={theme}
+            className="text-dark-text-tertiary"
+          >
             No active batches.
           </Text>
         )}
         {batches.data?.map((batch) => (
-          <View key={batch.id} className="flex-row justify-between items-center">
+          <View
+            key={batch.id}
+            className="flex-row justify-between items-center"
+          >
             <Text variant="detail" theme={theme}>
               {batch.name}
             </Text>
@@ -117,7 +143,11 @@ export default function HomeScreen() {
         <Text variant="title" theme={theme}>
           API status
         </Text>
-        <Text variant="detail" theme={theme} className="text-dark-text-tertiary">
+        <Text
+          variant="detail"
+          theme={theme}
+          className="text-dark-text-tertiary"
+        >
           {health.data
             ? `API is ${health.data.status} — ${health.data.timestamp}`
             : "Connecting to API..."}
