@@ -65,6 +65,14 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="cages"
+        options={{
+          title: "Cages",
+          tabBarIcon: () => <TabIcon label="🏗️" />,
+          href: canAccess("cages") ? undefined : null,
+        }}
+      />
+      <Tabs.Screen
         name="expenses"
         options={{
           title: "Expenses",

@@ -57,6 +57,7 @@ export function RoleGuard({ allowed, children, fallback }: Props) {
 export const SCREEN_ROLES: Record<string, FarmRole[]> = {
   index: ["owner", "manager", "staff"],
   record: ["owner", "manager", "staff"],
+  cages: ["owner", "manager", "staff"],
   history: ["owner", "manager", "staff"],
   expenses: ["owner", "manager"],
   sales: ["owner", "manager"],

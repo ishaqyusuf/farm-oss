@@ -90,12 +90,57 @@ model FlockBatch {
 
   farm         Farm          @relation(fields: [farmId], references: [id])
   dailyRecords DailyRecord[]
+  cageUnits    CageUnit[]
   expenses     Expense[]
   sales        Sale[]
   alerts       Alert[]
 
   @@index([farmId, status], map: "flock_batch_farm_id_status_idx")
   @@map("flock_batch")
+}
+
+// ---------------------------------------------------------------------------
+// CageUnit – individual cage within a battery cage system for a flock batch
+// ---------------------------------------------------------------------------
+
+model CageUnit {
+  id           String    @id @default(uuid()) @db.Uuid
+  flockBatchId String    @map("flock_batch_id") @db.Uuid
+  label        String // cage identifier e.g. "A1", "Row-3"
+  birdCount    Int       @map("bird_count")
+  startDate    DateTime  @map("start_date") @db.Date
+  status       String    @default("active") // active | inactive
+  notes        String?
+  deletedAt    DateTime? @map("deleted_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  flockBatch      FlockBatch       @relation(fields: [flockBatchId], references: [id])
+  cageProductions CageProduction[]
+
+  @@unique([flockBatchId, label], map: "cage_unit_batch_label_unique")
+  @@index([flockBatchId, status], map: "cage_unit_flock_batch_id_status_idx")
+  @@map("cage_unit")
+}
+
+// ---------------------------------------------------------------------------
+// CageProduction – daily production record per cage unit
+// ---------------------------------------------------------------------------
+
+model CageProduction {
+  id         String   @id @default(uuid()) @db.Uuid
+  cageUnitId String   @map("cage_unit_id") @db.Uuid
+  recordDate DateTime @map("record_date") @db.Date
+  eggCount   Int      @default(0) @map("egg_count")
+  mortality  Int      @default(0)
+  notes      String?
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  cageUnit CageUnit @relation(fields: [cageUnitId], references: [id])
+
+  @@unique([cageUnitId, recordDate], map: "cage_production_unit_date_unique")
+  @@map("cage_production")
 }
 
 // ---------------------------------------------------------------------------

@@ -1,5 +1,7 @@
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "../init";
+import { cageProductionRouter } from "./domain/cageProduction";
+import { cageUnitRouter } from "./domain/cageUnit";
 import { dailyRecordRouter } from "./domain/dailyRecord";
 import { expenseRouter } from "./domain/expense";
 import { farmRouter } from "./domain/farm";
@@ -42,6 +44,8 @@ export const appRouter = createTRPCRouter({
         };
       }),
   }),
+  cageProduction: cageProductionRouter,
+  cageUnit: cageUnitRouter,
   dailyRecord: dailyRecordRouter,
   expense: expenseRouter,
   farm: farmRouter,
