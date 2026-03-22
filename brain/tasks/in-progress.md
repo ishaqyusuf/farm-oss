@@ -9,7 +9,7 @@ This file tracks work currently being executed.
 - Remove completed items to `done.md`.
 
 ## In Progress
-- None currently.
+- Model core poultry domain entities.
 
 ## Status Notes
-- Move the next active implementation item here when work begins.
+- Moved from backlog 2026-03-22. First step is defining detailed fields, types, relationships, and conventions in `brain/database/schema.md` before writing any code.

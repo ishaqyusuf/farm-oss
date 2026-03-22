@@ -9,7 +9,6 @@ This file captures upcoming work that has not yet started.
 - Keep each task focused and outcome-based.
 
 ## Backlog
-- Model core poultry domain entities.
 - Design low-friction daily record entry flow.
 - Define dashboard metrics for flock performance and profitability.
 - Add real API contracts for farms, flock batches, and daily records.
