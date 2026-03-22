@@ -1,5 +1,10 @@
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "../init";
+import { dailyRecordRouter } from "./domain/dailyRecord";
+import { expenseRouter } from "./domain/expense";
+import { farmRouter } from "./domain/farm";
+import { flockBatchRouter } from "./domain/flockBatch";
+import { saleRouter } from "./domain/sale";
 
 export const appRouter = createTRPCRouter({
   auth: createTRPCRouter({
@@ -33,39 +38,17 @@ export const appRouter = createTRPCRouter({
         };
       })
   }),
-  farm: createTRPCRouter({
-    dailySummary: publicProcedure
-      .input(
-        z.object({
-          date: z.string().optional()
-        })
-      )
-      .query(({ input }) => {
-        return {
-          date: input.date ?? new Date().toISOString().slice(0, 10),
-          eggCount: 842,
-          feedQuantityKg: 125,
-          mortalityCount: 3
-        };
-      }),
-    listFlocks: publicProcedure.query(() => {
-      return [
-        {
-          ageInDays: 84,
-          birdCount: 1000,
-          id: "batch-layers-jan",
-          startedAt: "2026-01-01",
-          type: "layers"
-        }
-      ];
-    })
-  }),
+  dailyRecord: dailyRecordRouter,
+  expense: expenseRouter,
+  farm: farmRouter,
+  flockBatch: flockBatchRouter,
   health: publicProcedure.query(() => {
     return {
       status: "ok",
       timestamp: new Date().toISOString()
     };
-  })
+  }),
+  sale: saleRouter
 });
 
 export type AppRouter = typeof appRouter;

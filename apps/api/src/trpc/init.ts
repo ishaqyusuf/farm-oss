@@ -1,8 +1,10 @@
+import { db } from "@farm-oss/db";
 import { initTRPC } from "@trpc/server";
 import superjson from "superjson";
 
 export async function createTRPCContext() {
   return {
+    db,
     now: new Date()
   };
 }
