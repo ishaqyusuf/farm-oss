@@ -9,15 +9,21 @@ This file tracks the chosen and proposed technologies for the project.
 - Link to ADRs for significant stack decisions.
 
 ## Current State
-- No stack has been committed in code yet.
+- Initial scaffold committed in repository structure.
 
-## Candidate Stack
-- Frontend: Next.js web app and optionally Expo mobile app.
-- Backend: TypeScript API layer suitable for multi-tenant SaaS.
-- Database: PostgreSQL.
-- ORM: To be decided.
-- Hosting: To be decided.
-- Authentication: To be decided.
+## Chosen Foundation
+- Workspace: Bun + Turbo monorepo
+- Frontend: Next.js app router for dashboard and website
+- Mobile: Expo Router on React Native
+- Backend: Hono API on Bun
+- Desktop: Tauri + Vite shell
+- Database: PostgreSQL via local Docker Compose
+
+## Still To Choose
+- ORM and schema workflow
+- Authentication provider
+- Hosting strategy
+- Background jobs approach
 
 ## Selection Criteria
 - Fast product iteration

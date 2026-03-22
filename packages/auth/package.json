@@ -1,0 +1,17 @@
+{
+  "name": "@farm-oss/auth",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsc --noEmit",
+    "lint": "biome check .",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@farm-oss/tsconfig": "workspace:*"
+  }
+}
+

@@ -1,0 +1,18 @@
+{
+  "name": "@farm-oss/utils",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsc --noEmit",
+    "lint": "biome check .",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@farm-oss/tsconfig": "workspace:*",
+    "@types/node": "^22.0.0"
+  }
+}
+

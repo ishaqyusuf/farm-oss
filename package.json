@@ -1,0 +1,33 @@
+{
+  "name": "farm-oss",
+  "private": true,
+  "packageManager": "bun@1.3.9",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "turbo build",
+    "db:down": "docker compose down",
+    "db:generate": "DATABASE_URL=postgres://postgres:postgres@localhost:5432/farm_oss bun run --cwd packages/db db:generate",
+    "db:logs": "docker compose logs -f postgres",
+    "db:migrate": "DATABASE_URL=postgres://postgres:postgres@localhost:5432/farm_oss bun run --cwd packages/db db:migrate",
+    "db:migrate:deploy": "DATABASE_URL=postgres://postgres:postgres@localhost:5432/farm_oss bun run --cwd packages/db db:migrate:deploy",
+    "db:studio": "DATABASE_URL=postgres://postgres:postgres@localhost:5432/farm_oss bun run --cwd packages/db db:studio",
+    "db:up": "docker compose up -d postgres",
+    "dev": "turbo dev --parallel",
+    "dev:api": "turbo dev --filter=@farm-oss/api",
+    "dev:dashboard": "turbo dev --filter=@farm-oss/dashboard",
+    "dev:desktop": "turbo dev --filter=@farm-oss/desktop",
+    "dev:expo": "turbo dev --filter=@farm-oss/expo",
+    "dev:website": "turbo dev --filter=@farm-oss/website",
+    "format": "biome format --write .",
+    "lint": "turbo lint",
+    "typecheck": "turbo typecheck"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.3.0",
+    "turbo": "^2.5.0",
+    "typescript": "^5.9.0"
+  }
+}

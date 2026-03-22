@@ -1,0 +1,22 @@
+{
+  "name": "@farm-oss/ui",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./globals.css": "./src/globals.css",
+    "./postcss.config": "./postcss.config.mjs",
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsc --noEmit",
+    "lint": "biome check .",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@farm-oss/tsconfig": "workspace:*",
+    "@types/react": "^19.0.0",
+    "postcss": "^8.4.0",
+    "tailwindcss": "^4.1.0"
+  }
+}
+

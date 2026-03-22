@@ -1,0 +1,22 @@
+{
+  "name": "@farm-oss/db",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsc --noEmit",
+    "db:generate": "echo \"Add Prisma schema before generating client\"",
+    "db:migrate": "echo \"Add Prisma schema before running migrations\"",
+    "db:migrate:deploy": "echo \"Add Prisma schema before deploying migrations\"",
+    "db:studio": "echo \"Add Prisma schema before opening studio\"",
+    "lint": "biome check .",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@farm-oss/tsconfig": "workspace:*",
+    "@types/node": "^22.0.0"
+  }
+}
+

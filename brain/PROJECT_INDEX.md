@@ -9,17 +9,27 @@ This file tracks the repository structure so contributors can quickly understand
 - Note empty or planned areas clearly.
 
 ## Current Repository State
-- Repository currently contains documentation only.
-- No application code or packages have been created yet.
+- Repository now contains a Bun + Turbo monorepo scaffold plus the project brain.
 
-## Planned Top-Level Areas
-- `apps/`: user-facing applications such as web or mobile clients.
-- `packages/`: shared libraries such as UI, types, utilities, and config.
-- `services/`: backend services or workers if introduced later.
-- `brain/`: product, architecture, and execution knowledge base.
+## Top-Level Areas
+- `apps/`: application entry points.
+- `packages/`: shared libraries and configuration.
+- `brain/`: project knowledge base.
+- Root config: workspace, lint, TypeScript, and local database setup.
 
-## Current Files
-- `brain/`
+## Apps
+- `apps/api`: GND-inspired Hono API foundation with REST and tRPC scaffolding.
+- `apps/dashboard`: Next.js dashboard using a `src/app` structure.
+- `apps/desktop`: Tauri desktop shell for the dashboard.
+- `apps/expo`: Expo Router mobile app using `src/app`, tRPC client wiring, and lightweight auth state.
+- `apps/website`: Next.js marketing site using a `src/app` structure.
+
+## Packages
+- `packages/auth`: shared role and auth primitives.
+- `packages/db`: database entry point and future schema tooling.
+- `packages/tsconfig`: shared TypeScript configuration presets.
+- `packages/ui`: shared UI package placeholder and PostCSS config.
+- `packages/utils`: shared utilities.
 
 ## Notes
-- Once implementation starts, replace planned sections with actual paths and responsibilities.
+- The structure is intentionally lighter than `plot-keys` and tuned for a farm operations SaaS starting with poultry workflows.
