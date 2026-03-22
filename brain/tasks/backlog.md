@@ -9,11 +9,10 @@ This file captures upcoming work that has not yet started.
 - Keep each task focused and outcome-based.
 
 ## Backlog
-- Model core poultry domain entities.
-- Design low-friction daily record entry flow.
-- Define dashboard metrics for flock performance and profitability.
-- Add real API contracts for farms, flock batches, and daily records.
-- Choose ORM and implement first schema.
+- Add flock batch selector to mobile record/expense/sale flows (currently uses placeholder IDs).
+- Implement real authentication (replace hardcoded demo auth with JWT/session).
 - Connect desktop shell to authenticated dashboard flow and native app assets.
-- Wire Expo app to real auth and farm daily-record APIs.
 - Share auth and data hooks across Expo and dashboard once web auth is introduced.
+- Add pull-to-refresh and offline queue for mobile data entry.
+- Add expense/sale listing filters (date range, category/type).
+- Implement farm creation and switching in mobile app.

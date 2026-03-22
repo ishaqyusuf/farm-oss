@@ -12,4 +12,4 @@ This file tracks work currently being executed.
 - None currently.
 
 ## Status Notes
-- Move the next active implementation item here when work begins.
+- Expense/sale screens and dashboard metrics completed 2026-03-22. See done.md for details.

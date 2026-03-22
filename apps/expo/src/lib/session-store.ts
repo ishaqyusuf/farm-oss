@@ -1,5 +1,5 @@
-import * as SecureStore from "expo-secure-store";
 import type { AuthSession } from "@farm-oss/auth";
+import * as SecureStore from "expo-secure-store";
 
 const SESSION_KEY = "farm_oss_session";
 
@@ -15,4 +15,3 @@ export async function setSession(session: AuthSession) {
 export async function clearSession() {
   await SecureStore.deleteItemAsync(SESSION_KEY);
 }
-

@@ -1,3 +1,5 @@
+import "../../global.css";
+
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -14,9 +16,9 @@ export default function RootLayout() {
             screenOptions={{
               animation: "fade",
               contentStyle: {
-                backgroundColor: "#102015"
+                backgroundColor: "#102015",
               },
-              headerShown: false
+              headerShown: false,
             }}
           />
         </AuthProvider>
@@ -24,4 +26,3 @@ export default function RootLayout() {
     </SafeAreaProvider>
   );
 }
-

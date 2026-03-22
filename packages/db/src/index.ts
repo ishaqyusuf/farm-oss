@@ -1,11 +1,7 @@
-export type FlockType = "layers" | "broilers";
+import { PrismaClient } from "../generated/prisma";
 
-export type DailyRecordInput = {
-  batchId: string;
-  date: string;
-  feedQuantityKg: number;
-  eggCount?: number;
-  mortalityCount: number;
-  notes?: string;
-};
+export const db = new PrismaClient();
+
+export { PrismaClient };
+export type * from "../generated/prisma";
 

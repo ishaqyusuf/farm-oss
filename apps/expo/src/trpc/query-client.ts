@@ -5,9 +5,8 @@ export function makeQueryClient() {
     defaultOptions: {
       queries: {
         retry: 1,
-        staleTime: 30_000
-      }
-    }
+        staleTime: 30_000,
+      },
+    },
   });
 }
-

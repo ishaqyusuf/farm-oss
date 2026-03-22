@@ -1,5 +1,6 @@
 {
   "extends": "@farm-oss/tsconfig/base.json",
-  "include": ["src/**/*.ts", "prisma.config.ts", "drizzle.config.ts"]
+  "include": ["src/**/*.ts", "prisma.config.ts"],
+  "exclude": ["generated"]
 }
 

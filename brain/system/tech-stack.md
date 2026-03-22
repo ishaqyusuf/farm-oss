@@ -18,9 +18,9 @@ This file tracks the chosen and proposed technologies for the project.
 - Backend: Hono API on Bun
 - Desktop: Tauri + Vite shell
 - Database: PostgreSQL via local Docker Compose
+- ORM: Prisma v7 (ADR-004)
 
 ## Still To Choose
-- ORM and schema workflow
 - Authentication provider
 - Hosting strategy
 - Background jobs approach

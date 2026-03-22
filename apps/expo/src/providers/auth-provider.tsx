@@ -13,7 +13,7 @@ type AuthContextValue = {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({
-  children
+  children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
@@ -42,7 +42,7 @@ export function AuthProvider({
     async signOut() {
       setSessionState(null);
       await clearSession();
-    }
+    },
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
