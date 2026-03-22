@@ -105,7 +105,7 @@ export default function CagesScreen() {
       Alert.alert("Validation", "Please enter a cage label.");
       return;
     }
-    if (!birdCount || Number(birdCount) < 0) {
+    if (!birdCount || Number(birdCount) <= 0) {
       Alert.alert("Validation", "Please enter a valid bird count.");
       return;
     }
@@ -250,8 +250,9 @@ export default function CagesScreen() {
             </Text>
             <Text variant="caption" theme={theme} className={subtextClass}>
               {todayISO()}
-              {selectedCage &&
-                ` · ${selectedCage.birdCount} birds · Age: ${ageInWeeks(selectedCage.startDate)} weeks`}
+              {selectedCage
+                ? ` · ${selectedCage.birdCount} birds · Age: ${ageInWeeks(selectedCage.startDate)} weeks`
+                : ""}
             </Text>
           </Card>
 
