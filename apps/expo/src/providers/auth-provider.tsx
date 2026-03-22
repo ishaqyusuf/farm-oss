@@ -6,7 +6,7 @@ import { useTRPC } from "@/trpc/client";
 type AuthContextValue = {
   isHydrated: boolean;
   session: AuthSession | null;
-  signIn: (input: { email: string; password: string }) => Promise<void>;
+  signIn: (input: { userId: string; password: string }) => Promise<void>;
   signOut: () => Promise<void>;
 };
 

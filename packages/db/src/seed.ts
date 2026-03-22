@@ -23,13 +23,14 @@ async function main() {
     update: {},
     create: {
       tenantId: tenant.id,
+      userId: "100001",
       email: "manager@farmoss.app",
       name: "Farm Manager",
       role: "owner",
       passwordHash: "demo-hash-not-for-production",
     },
   });
-  console.log(`  User: ${user.name} (${user.email})`);
+  console.log(`  User: ${user.name} (${user.email}, ID: ${user.userId})`);
 
   // ── Farm ───────────────────────────────────────────────────────────
   let farm = await prisma.farm.findFirst({
