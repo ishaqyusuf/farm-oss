@@ -3,6 +3,7 @@ import { useState } from "react";
 import { ActivityIndicator, Alert, Pressable, View } from "react-native";
 import { Button, Card, Input, Screen, Text } from "@/components/ui";
 import { PLACEHOLDER_FARM_ID } from "@/lib/constants";
+import { formatNaira, toKobo } from "@/lib/currency";
 import { useAuth } from "@/providers/auth-provider";
 import { light, spacing } from "@/theme";
 import { radii } from "@/theme/spacing";
@@ -80,7 +81,7 @@ export default function ExpensesScreen() {
       farmId: PLACEHOLDER_FARM_ID,
       category,
       description: description || undefined,
-      amount: Math.round(Number(amount) * 100),
+      amount: toKobo(Number(amount)),
       expenseDate: todayISO(),
     });
   }
@@ -230,7 +231,7 @@ export default function ExpensesScreen() {
               {expense.category}
             </Text>
             <Text variant="label" color="accent" theme={t}>
-              ₦{(expense.amount / 100).toLocaleString()}
+              {formatNaira(expense.amount)}
             </Text>
           </View>
           {expense.description && (

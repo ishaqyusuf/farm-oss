@@ -12,4 +12,4 @@ This file tracks work currently being executed.
 - None currently.
 
 ## Status Notes
-- Daily record flow task completed 2026-03-22. See done.md for details.
+- Expense/sale screens and dashboard metrics completed 2026-03-22. See done.md for details.

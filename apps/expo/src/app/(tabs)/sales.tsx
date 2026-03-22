@@ -3,6 +3,7 @@ import { useState } from "react";
 import { ActivityIndicator, Alert, Pressable, View } from "react-native";
 import { Button, Card, Input, Screen, Text } from "@/components/ui";
 import { PLACEHOLDER_FARM_ID } from "@/lib/constants";
+import { formatNaira, toKobo } from "@/lib/currency";
 import { useAuth } from "@/providers/auth-provider";
 import { light, spacing } from "@/theme";
 import { radii } from "@/theme/spacing";
@@ -66,9 +67,9 @@ export default function SalesScreen() {
 
   /** Compute total from qty × unit price, or use manually entered total. */
   function resolvedTotal(): number {
-    if (totalAmount) return Math.round(Number(totalAmount) * 100);
+    if (totalAmount) return toKobo(Number(totalAmount));
     if (quantity && unitPrice)
-      return Math.round(Number(quantity) * Number(unitPrice) * 100);
+      return toKobo(Number(quantity) * Number(unitPrice));
     return 0;
   }
 
@@ -91,7 +92,7 @@ export default function SalesScreen() {
       saleType,
       description: description || undefined,
       quantity: quantity ? Number(quantity) : undefined,
-      unitPrice: unitPrice ? Math.round(Number(unitPrice) * 100) : undefined,
+      unitPrice: unitPrice ? toKobo(Number(unitPrice)) : undefined,
       totalAmount: total,
       saleDate: todayISO(),
     });
@@ -259,14 +260,13 @@ export default function SalesScreen() {
               {sale.saleType}
             </Text>
             <Text variant="label" color="accent" theme={t}>
-              ₦{(sale.totalAmount / 100).toLocaleString()}
+              {formatNaira(sale.totalAmount)}
             </Text>
           </View>
           {sale.quantity != null && (
             <Text variant="detail" color="textSecondary" theme={t}>
               {sale.quantity} units
-              {sale.unitPrice != null &&
-                ` × ₦${(sale.unitPrice / 100).toLocaleString()}`}
+              {sale.unitPrice != null && ` × ${formatNaira(sale.unitPrice)}`}
             </Text>
           )}
           {sale.description && (

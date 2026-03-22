@@ -9,9 +9,10 @@ This file captures upcoming work that has not yet started.
 - Keep each task focused and outcome-based.
 
 ## Backlog
-- Define dashboard metrics for flock performance and profitability.
-- Add flock batch selector to mobile record flow (currently uses demo ID).
+- Add flock batch selector to mobile record/expense/sale flows (currently uses placeholder IDs).
+- Implement real authentication (replace hardcoded demo auth with JWT/session).
 - Connect desktop shell to authenticated dashboard flow and native app assets.
-- Implement real authentication (replace hardcoded demo auth).
 - Share auth and data hooks across Expo and dashboard once web auth is introduced.
-- Add expense and sale entry screens to mobile app.
+- Add pull-to-refresh and offline queue for mobile data entry.
+- Add expense/sale listing filters (date range, category/type).
+- Implement farm creation and switching in mobile app.
