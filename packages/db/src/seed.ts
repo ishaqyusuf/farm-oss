@@ -23,13 +23,14 @@ async function main() {
     update: {},
     create: {
       tenantId: tenant.id,
+      userId: "100001",
       email: "manager@farmoss.app",
       name: "Farm Manager",
       role: "owner",
       passwordHash: "demo-hash-not-for-production",
     },
   });
-  console.log(`  User: ${user.name} (${user.email})`);
+  console.log(`  User: ${user.name} (${user.email}, ID: ${user.userId})`);
 
   // ── Farm ───────────────────────────────────────────────────────────
   let farm = await prisma.farm.findFirst({
@@ -152,6 +153,57 @@ async function main() {
     },
   });
   console.log("  Sales: 1 record");
+
+  // ── Cage Units (battery cage system for layers) ─────────────────────
+  const cageLabels = ["A1", "A2", "A3", "B1", "B2", "B3", "C1", "C2"];
+  const cageUnits = [];
+  for (const cageLabel of cageLabels) {
+    const cage = await prisma.cageUnit.create({
+      data: {
+        flockBatchId: layerBatch.id,
+        label: cageLabel,
+        birdCount: 5 + Math.floor(Math.random() * 3), // 5-7 birds per cage
+        startDate: new Date("2026-01-01"),
+        status: "active",
+        notes:
+          cageLabel === "A1"
+            ? "Top-tier performance cage"
+            : cageLabel === "C2"
+              ? "Recently restocked"
+              : undefined,
+      },
+    });
+    cageUnits.push(cage);
+  }
+  console.log(`  CageUnits: ${cageUnits.length} cages for layers batch`);
+
+  // ── Cage Production (last 5 days for all cages) ─────────────────────
+  let cageProductionCount = 0;
+  for (let i = 4; i >= 0; i--) {
+    const date = new Date(today);
+    date.setDate(date.getDate() - i);
+    const dateStr = date.toISOString().slice(0, 10);
+
+    for (const cage of cageUnits) {
+      await prisma.cageProduction.create({
+        data: {
+          cageUnitId: cage.id,
+          recordDate: new Date(dateStr),
+          eggCount: Math.max(0, cage.birdCount - Math.floor(Math.random() * 2)),
+          feedGrams: 300 + Math.floor(Math.random() * 200), // 300-500g per cage
+          mortality: i === 2 && cage.label === "B1" ? 1 : 0,
+          notes:
+            i === 0 && cage.label === "A1"
+              ? "Strong production day"
+              : undefined,
+        },
+      });
+      cageProductionCount++;
+    }
+  }
+  console.log(
+    `  CageProduction: ${cageProductionCount} records (${cageUnits.length} cages × 5 days)`,
+  );
 
   console.log("\nSeed complete!");
 }

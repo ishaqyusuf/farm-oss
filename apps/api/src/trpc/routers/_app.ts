@@ -1,5 +1,7 @@
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "../init";
+import { cageProductionRouter } from "./domain/cageProduction";
+import { cageUnitRouter } from "./domain/cageUnit";
 import { dailyRecordRouter } from "./domain/dailyRecord";
 import { expenseRouter } from "./domain/expense";
 import { farmRouter } from "./domain/farm";
@@ -12,17 +14,19 @@ export const appRouter = createTRPCRouter({
       return {
         token: "farm-oss-demo-token",
         user: {
-          email: "manager@farmoss.app",
           id: "user-owner-001",
+          userId: "100001",
+          email: "manager@farmoss.app",
           name: "Farm Manager",
           role: "owner" as const,
+          tenantId: "tenant-001",
         },
       };
     }),
     signIn: publicProcedure
       .input(
         z.object({
-          email: z.string().email(),
+          userId: z.string().length(6, "User ID must be 6 digits"),
           password: z.string().min(4),
         }),
       )
@@ -30,14 +34,18 @@ export const appRouter = createTRPCRouter({
         return {
           token: "farm-oss-demo-token",
           user: {
-            email: input.email,
             id: "user-owner-001",
+            userId: input.userId,
+            email: "manager@farmoss.app",
             name: "Farm Manager",
             role: "owner" as const,
+            tenantId: "tenant-001",
           },
         };
       }),
   }),
+  cageProduction: cageProductionRouter,
+  cageUnit: cageUnitRouter,
   dailyRecord: dailyRecordRouter,
   expense: expenseRouter,
   farm: farmRouter,

@@ -2,12 +2,14 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { ActivityIndicator, Alert, Pressable, View } from "react-native";
 import { Button, Card, Input, Screen, Text } from "@/components/ui";
+import { RoleGuard, SCREEN_ROLES } from "@/components/RoleGuard";
 import { PLACEHOLDER_FARM_ID } from "@/lib/constants";
 import { formatNaira, toKobo } from "@/lib/currency";
+import { enqueue } from "@/lib/offline-queue";
 import { useAuth } from "@/providers/auth-provider";
+import { useTheme } from "@/providers/theme-provider";
+import { useSync } from "@/providers/sync-provider";
 import { useTRPC } from "@/trpc/client";
-
-const theme = "light" as const;
 
 const CATEGORIES = [
   "feed",
@@ -25,6 +27,8 @@ function todayISO() {
 
 export default function ExpensesScreen() {
   const { session } = useAuth();
+  const { theme } = useTheme();
+  const { isOnline } = useSync();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
@@ -65,9 +69,19 @@ export default function ExpensesScreen() {
     setShowForm(false);
   }
 
-  function handleSave() {
+  function buildPayload() {
+    return {
+      farmId: PLACEHOLDER_FARM_ID,
+      category,
+      description: description || undefined,
+      amount: toKobo(Number(amount)),
+      expenseDate: todayISO(),
+    };
+  }
+
+  async function handleSave() {
     if (!session) {
-      Alert.alert("Sign in required", "Please sign in from the Home tab.");
+      Alert.alert("Sign in required", "Please sign in first.");
       return;
     }
     if (!amount || Number(amount) <= 0) {
@@ -75,174 +89,189 @@ export default function ExpensesScreen() {
       return;
     }
 
-    createExpense.mutate({
-      farmId: PLACEHOLDER_FARM_ID,
-      category,
-      description: description || undefined,
-      amount: toKobo(Number(amount)),
-      expenseDate: todayISO(),
-    });
+    const payload = buildPayload();
+
+    if (isOnline) {
+      createExpense.mutate(payload);
+    } else {
+      await enqueue("expense.create", payload);
+      Alert.alert("Saved offline", "Expense queued and will sync when online.");
+      resetForm();
+    }
   }
 
   const isBusy = createExpense.isPending;
 
+  const accentClass =
+    theme === "dark" ? "text-dark-accent" : "text-light-accent";
+  const subtextClass =
+    theme === "dark" ? "text-dark-text-tertiary" : "text-light-text-tertiary";
+  const secondaryClass =
+    theme === "dark" ? "text-dark-text-secondary" : "text-light-text-secondary";
+
+  const selectedChipBg =
+    theme === "dark"
+      ? "bg-dark-accent border-dark-accent"
+      : "bg-light-accent border-light-accent";
+  const unselectedChipBg =
+    theme === "dark"
+      ? "bg-dark-surface border-dark-border"
+      : "bg-light-surface border-light-border";
+  const selectedChipText =
+    theme === "dark" ? "text-dark-accent-text" : "text-light-accent-text";
+
   // ── New expense form ────────────────────────────────────────────────
   if (showForm) {
     return (
-      <Screen theme={theme}>
-        <Card theme={theme}>
-          <Text variant="tag" theme={theme} className="text-light-accent">
-            New expense
-          </Text>
-          <Text variant="heading" theme={theme}>
-            Log a farm expense
-          </Text>
-        </Card>
+      <RoleGuard allowed={SCREEN_ROLES.expenses}>
+        <Screen theme={theme}>
+          <Card theme={theme}>
+            <Text variant="tag" theme={theme} className={accentClass}>
+              New expense
+            </Text>
+            <Text variant="heading" theme={theme}>
+              Log a farm expense
+            </Text>
+            {!isOnline && (
+              <Text variant="caption" theme={theme} className={subtextClass}>
+                📡 Offline — will sync later
+              </Text>
+            )}
+          </Card>
 
-        <View className="gap-2">
-          <Text
-            variant="label"
-            theme={theme}
-            className="text-light-text-secondary"
-          >
-            Category
-          </Text>
-          <View className="flex-row flex-wrap gap-2">
-            {CATEGORIES.map((cat) => (
-              <Pressable
-                key={cat}
-                onPress={() => setCategory(cat)}
-                className={`border rounded-2xl px-4 py-2.5 ${
-                  category === cat
-                    ? "bg-light-accent border-light-accent"
-                    : "bg-light-surface border-light-border"
-                }`}
-              >
-                <Text
-                  variant="label"
-                  theme={theme}
-                  className={`capitalize ${category === cat ? "text-light-accent-text" : ""}`}
+          <View className="gap-2">
+            <Text variant="label" theme={theme} className={secondaryClass}>
+              Category
+            </Text>
+            <View className="flex-row flex-wrap gap-2">
+              {CATEGORIES.map((cat) => (
+                <Pressable
+                  key={cat}
+                  onPress={() => setCategory(cat)}
+                  className={`border rounded-2xl px-4 py-2.5 ${
+                    category === cat ? selectedChipBg : unselectedChipBg
+                  }`}
                 >
-                  {cat}
-                </Text>
-              </Pressable>
-            ))}
+                  <Text
+                    variant="label"
+                    theme={theme}
+                    className={`capitalize ${category === cat ? selectedChipText : ""}`}
+                  >
+                    {cat}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
           </View>
-        </View>
 
-        <Input
-          label="Amount (₦)"
-          placeholder="e.g. 7500"
-          value={amount}
-          onChangeText={setAmount}
-          keyboardType="numeric"
-          theme={theme}
-        />
-
-        <Input
-          label="Description"
-          placeholder="Layer mash – 50 bags"
-          value={description}
-          onChangeText={setDescription}
-          theme={theme}
-        />
-
-        <View className="gap-2.5">
-          <Button theme={theme} onPress={handleSave} disabled={isBusy}>
-            {isBusy ? <ActivityIndicator color="#f6f1e6" /> : "Save expense"}
-          </Button>
-          <Button
-            variant="ghost"
+          <Input
+            label="Amount (₦)"
+            placeholder="e.g. 7500"
+            value={amount}
+            onChangeText={setAmount}
+            keyboardType="numeric"
             theme={theme}
-            onPress={() => setShowForm(false)}
-          >
-            Cancel
-          </Button>
-        </View>
-      </Screen>
+          />
+
+          <Input
+            label="Description"
+            placeholder="Layer mash – 50 bags"
+            value={description}
+            onChangeText={setDescription}
+            theme={theme}
+          />
+
+          <View className="gap-2.5">
+            <Button theme={theme} onPress={handleSave} disabled={isBusy}>
+              {isBusy ? (
+                <ActivityIndicator
+                  color={theme === "dark" ? "#18210f" : "#f6f1e6"}
+                />
+              ) : isOnline ? (
+                "Save expense"
+              ) : (
+                "Save offline"
+              )}
+            </Button>
+            <Button
+              variant="ghost"
+              theme={theme}
+              onPress={() => setShowForm(false)}
+            >
+              Cancel
+            </Button>
+          </View>
+        </Screen>
+      </RoleGuard>
     );
   }
 
   // ── Expense list ────────────────────────────────────────────────────
   return (
-    <Screen theme={theme}>
-      <Card theme={theme} className="gap-3.5 p-6 rounded-[28px]">
-        <Text variant="tag" theme={theme} className="text-light-accent">
-          Expenses
-        </Text>
-        <Text variant="heading" theme={theme}>
-          Farm spending
-        </Text>
-        <Button theme={theme} onPress={() => setShowForm(true)}>
-          + New expense
-        </Button>
-      </Card>
-
-      {expenses.isLoading && (
-        <Card variant="subtle" theme={theme}>
-          <Text
-            variant="detail"
-            theme={theme}
-            className="text-light-text-tertiary"
-          >
-            Loading expenses…
+    <RoleGuard allowed={SCREEN_ROLES.expenses}>
+      <Screen theme={theme}>
+        <Card theme={theme} className="gap-3.5 p-6 rounded-[28px]">
+          <Text variant="tag" theme={theme} className={accentClass}>
+            Expenses
           </Text>
-        </Card>
-      )}
-
-      {expenses.isError && (
-        <Card variant="subtle" theme={theme}>
-          <Text variant="detail" theme={theme} className="text-light-accent">
-            Could not load expenses. The API may be offline or no farm exists
-            yet.
+          <Text variant="heading" theme={theme}>
+            Farm spending
           </Text>
+          <Button theme={theme} onPress={() => setShowForm(true)}>
+            + New expense
+          </Button>
         </Card>
-      )}
 
-      {expenses.data?.length === 0 && (
-        <Card variant="subtle" theme={theme}>
-          <Text
-            variant="detail"
-            theme={theme}
-            className="text-light-text-tertiary"
-          >
-            No expenses yet. Tap "+ New expense" to add one.
-          </Text>
-        </Card>
-      )}
-
-      {expenses.data?.map((expense) => (
-        <Card key={expense.id} variant="subtle" theme={theme}>
-          <View className="flex-row justify-between items-center">
-            <Text variant="label" theme={theme} className="capitalize">
-              {expense.category}
+        {expenses.isLoading && (
+          <Card variant="subtle" theme={theme}>
+            <Text variant="detail" theme={theme} className={subtextClass}>
+              Loading expenses…
             </Text>
-            <Text variant="label" theme={theme} className="text-light-accent">
-              {formatNaira(expense.amount)}
+          </Card>
+        )}
+
+        {expenses.isError && (
+          <Card variant="subtle" theme={theme}>
+            <Text variant="detail" theme={theme} className={accentClass}>
+              Could not load expenses. The API may be offline or no farm exists
+              yet.
             </Text>
-          </View>
-          {expense.description && (
-            <Text
-              variant="detail"
-              theme={theme}
-              className="text-light-text-secondary"
-            >
-              {expense.description}
+          </Card>
+        )}
+
+        {expenses.data?.length === 0 && (
+          <Card variant="subtle" theme={theme}>
+            <Text variant="detail" theme={theme} className={subtextClass}>
+              No expenses yet. Tap "+ New expense" to add one.
             </Text>
-          )}
-          <Text
-            variant="caption"
-            theme={theme}
-            className="text-light-text-tertiary"
-          >
-            {new Date(expense.expenseDate).toLocaleDateString("en-GB", {
-              day: "numeric",
-              month: "short",
-              year: "numeric",
-            })}
-          </Text>
-        </Card>
-      ))}
-    </Screen>
+          </Card>
+        )}
+
+        {expenses.data?.map((expense) => (
+          <Card key={expense.id} variant="subtle" theme={theme}>
+            <View className="flex-row justify-between items-center">
+              <Text variant="label" theme={theme} className="capitalize">
+                {expense.category}
+              </Text>
+              <Text variant="label" theme={theme} className={accentClass}>
+                {formatNaira(expense.amount)}
+              </Text>
+            </View>
+            {expense.description && (
+              <Text variant="detail" theme={theme} className={secondaryClass}>
+                {expense.description}
+              </Text>
+            )}
+            <Text variant="caption" theme={theme} className={subtextClass}>
+              {new Date(expense.expenseDate).toLocaleDateString("en-GB", {
+                day: "numeric",
+                month: "short",
+                year: "numeric",
+              })}
+            </Text>
+          </Card>
+        ))}
+      </Screen>
+    </RoleGuard>
   );
 }
