@@ -26,7 +26,7 @@ This file tracks the repository structure so contributors can quickly understand
 
 ## Packages
 - `packages/auth`: shared role and auth primitives.
-- `packages/db`: database entry point and future schema tooling.
+- `packages/db`: Prisma ORM with PostgreSQL schema for all domain entities (Tenant, User, Farm, FlockBatch, DailyRecord, Expense, Sale, Alert). Exports singleton PrismaClient.
 - `packages/tsconfig`: shared TypeScript configuration presets.
 - `packages/ui`: shared UI package placeholder and PostCSS config.
 - `packages/utils`: shared utilities.

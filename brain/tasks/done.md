@@ -15,3 +15,5 @@ This file tracks completed work items with enough context to understand progress
 - 2026-03-22: Added a GND-inspired Expo Router mobile app scaffold under `apps/expo` for poultry-first daily operations.
 - 2026-03-22: Replaced the placeholder API with a GND-inspired Hono foundation including REST routes, Bun runtime entry, and a starter tRPC router.
 - 2026-03-22: Wired Expo to auth and tRPC, and standardized dashboard, Expo, and website around a `src` folder structure.
+- 2026-03-22: Modeled core poultry domain entities in `brain/database/schema.md` with full field specs, conventions, relationships, and indexes.
+- 2026-03-22: Chose Prisma (v7) as ORM (ADR-004). Implemented schema in `packages/db/prisma/schema.prisma` with all 8 entities, updated PrismaClient export, and wired db:generate/migrate/studio scripts.

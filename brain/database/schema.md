@@ -172,7 +172,13 @@ Derived notification surfaced by the system when metrics indicate an issue.
 - `tenant(slug)` — unique, tenant resolution.
 
 ## Remaining Decisions
-- ORM choice (Drizzle vs Prisma) before implementing schema in code.
 - Whether `recorded_by` on DailyRecord should be required or optional.
 - Whether to add an `invited_at` / `last_login_at` to User for onboarding tracking.
 - Cross-farm reporting: whether to add a denormalized `tenant_id` on FlockBatch and DailyRecord for simpler cross-farm queries, or always join through Farm.
+
+## Implementation
+- ORM: Prisma v7 (ADR-004).
+- Schema file: `packages/db/prisma/schema.prisma`.
+- Config file: `packages/db/prisma.config.ts`.
+- Generated client: `packages/db/generated/prisma` (gitignored).
+- Singleton export: `packages/db/src/index.ts`.
