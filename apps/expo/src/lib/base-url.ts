@@ -13,4 +13,3 @@ export function getBaseUrl() {
 
   return `http://${host}:3001`;
 }
-

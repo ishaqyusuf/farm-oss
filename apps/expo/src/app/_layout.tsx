@@ -2,6 +2,7 @@ import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { AuthProvider } from "@/providers/auth-provider";
+import { dark } from "@/theme";
 import { TRPCReactProvider } from "@/trpc/client";
 
 export default function RootLayout() {
@@ -14,9 +15,9 @@ export default function RootLayout() {
             screenOptions={{
               animation: "fade",
               contentStyle: {
-                backgroundColor: "#102015"
+                backgroundColor: dark.background,
               },
-              headerShown: false
+              headerShown: false,
             }}
           />
         </AuthProvider>
@@ -24,4 +25,3 @@ export default function RootLayout() {
     </SafeAreaProvider>
   );
 }
-
