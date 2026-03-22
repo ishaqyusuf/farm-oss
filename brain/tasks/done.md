@@ -18,3 +18,4 @@ This file tracks completed work items with enough context to understand progress
 - 2026-03-22: Modeled core poultry domain entities in `brain/database/schema.md` with full field specs, conventions, relationships, and indexes.
 - 2026-03-22: Chose Prisma (v7) as ORM (ADR-004). Implemented schema in `packages/db/prisma/schema.prisma` with all 8 entities, updated PrismaClient export, and wired db:generate/migrate/studio scripts.
 - 2026-03-22: Wired real API contracts for all domain entities (farm, flockBatch, dailyRecord, expense, sale). REST and tRPC endpoints now use Prisma queries. Added seed script for development data.
+- 2026-03-22: Built mobile app design system with centralized theme tokens (colors, spacing, typography, radii) and reusable UI primitives (Text, Card, Button, Input, Screen). Refactored all Expo screens to use the design system with zero inline color values. Fixed stale tRPC hook references.
