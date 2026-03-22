@@ -1,0 +1,198 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------------------------------------------------------------------------
+// Tenant – multi-tenancy boundary
+// ---------------------------------------------------------------------------
+
+model Tenant {
+  id        String    @id @default(uuid()) @db.Uuid
+  name      String
+  slug      String    @unique
+  currency  String    @default("NGN") @db.Char(3)
+  deletedAt DateTime? @map("deleted_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  farms Farm[]
+  users User[]
+
+  @@map("tenant")
+}
+
+// ---------------------------------------------------------------------------
+// User – app user, belongs to one tenant
+// ---------------------------------------------------------------------------
+
+model User {
+  id           String   @id @default(uuid()) @db.Uuid
+  tenantId     String   @map("tenant_id") @db.Uuid
+  email        String   @unique
+  name         String
+  role         String // owner | manager | staff
+  passwordHash String   @map("password_hash")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  tenant          Tenant        @relation(fields: [tenantId], references: [id])
+  dailyRecords    DailyRecord[] @relation("RecordedByUser")
+  dismissedAlerts Alert[]       @relation("DismissedByUser")
+
+  @@map("user")
+}
+
+// ---------------------------------------------------------------------------
+// Farm – operational unit under a tenant
+// ---------------------------------------------------------------------------
+
+model Farm {
+  id        String    @id @default(uuid()) @db.Uuid
+  tenantId  String    @map("tenant_id") @db.Uuid
+  name      String
+  location  String?
+  deletedAt DateTime? @map("deleted_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  tenant       Tenant       @relation(fields: [tenantId], references: [id])
+  flockBatches FlockBatch[]
+  expenses     Expense[]
+  sales        Sale[]
+  alerts       Alert[]
+
+  @@map("farm")
+}
+
+// ---------------------------------------------------------------------------
+// FlockBatch – a group of birds managed together
+// ---------------------------------------------------------------------------
+
+model FlockBatch {
+  id           String    @id @default(uuid()) @db.Uuid
+  farmId       String    @map("farm_id") @db.Uuid
+  name         String
+  birdType     String    @map("bird_type") // layer | broiler
+  initialCount Int       @map("initial_count")
+  currentCount Int       @map("current_count")
+  startDate    DateTime  @map("start_date") @db.Date
+  endDate      DateTime? @map("end_date") @db.Date
+  status       String    @default("active") // active | closed
+  deletedAt    DateTime? @map("deleted_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  farm         Farm          @relation(fields: [farmId], references: [id])
+  dailyRecords DailyRecord[]
+  expenses     Expense[]
+  sales        Sale[]
+  alerts       Alert[]
+
+  @@index([farmId, status], map: "flock_batch_farm_id_status_idx")
+  @@map("flock_batch")
+}
+
+// ---------------------------------------------------------------------------
+// DailyRecord – one record per batch per date (core operational input)
+// ---------------------------------------------------------------------------
+
+model DailyRecord {
+  id             String   @id @default(uuid()) @db.Uuid
+  flockBatchId   String   @map("flock_batch_id") @db.Uuid
+  recordDate     DateTime @map("record_date") @db.Date
+  eggCount       Int?     @map("egg_count")
+  feedGrams      Int?     @map("feed_grams")
+  mortality      Int      @default(0)
+  mortalityNotes String?  @map("mortality_notes")
+  notes          String?
+  recordedBy     String?  @map("recorded_by") @db.Uuid
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  flockBatch FlockBatch @relation(fields: [flockBatchId], references: [id])
+  recorder   User?      @relation("RecordedByUser", fields: [recordedBy], references: [id])
+
+  @@unique([flockBatchId, recordDate], map: "daily_record_batch_date_unique")
+  @@map("daily_record")
+}
+
+// ---------------------------------------------------------------------------
+// Expense – cost event tied to a farm or a specific batch
+// ---------------------------------------------------------------------------
+
+model Expense {
+  id           String    @id @default(uuid()) @db.Uuid
+  farmId       String    @map("farm_id") @db.Uuid
+  flockBatchId String?   @map("flock_batch_id") @db.Uuid
+  category     String // feed | medication | labor | equipment | other
+  description  String?
+  amount       Int // minor currency units (e.g. kobo)
+  currency     String    @default("NGN") @db.Char(3)
+  expenseDate  DateTime  @map("expense_date") @db.Date
+  deletedAt    DateTime? @map("deleted_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  farm       Farm        @relation(fields: [farmId], references: [id])
+  flockBatch FlockBatch? @relation(fields: [flockBatchId], references: [id])
+
+  @@index([farmId, expenseDate], map: "expense_farm_id_expense_date_idx")
+  @@map("expense")
+}
+
+// ---------------------------------------------------------------------------
+// Sale – revenue event (eggs sold, birds sold, other)
+// ---------------------------------------------------------------------------
+
+model Sale {
+  id           String    @id @default(uuid()) @db.Uuid
+  farmId       String    @map("farm_id") @db.Uuid
+  flockBatchId String?   @map("flock_batch_id") @db.Uuid
+  saleType     String    @map("sale_type") // eggs | birds | other
+  description  String?
+  quantity     Int?
+  unitPrice    Int?      @map("unit_price") // minor currency units
+  totalAmount  Int       @map("total_amount") // minor currency units
+  currency     String    @default("NGN") @db.Char(3)
+  saleDate     DateTime  @map("sale_date") @db.Date
+  deletedAt    DateTime? @map("deleted_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  farm       Farm        @relation(fields: [farmId], references: [id])
+  flockBatch FlockBatch? @relation(fields: [flockBatchId], references: [id])
+
+  @@index([farmId, saleDate], map: "sale_farm_id_sale_date_idx")
+  @@map("sale")
+}
+
+// ---------------------------------------------------------------------------
+// Alert – derived notification surfaced by the system
+// ---------------------------------------------------------------------------
+
+model Alert {
+  id           String    @id @default(uuid()) @db.Uuid
+  farmId       String    @map("farm_id") @db.Uuid
+  flockBatchId String?   @map("flock_batch_id") @db.Uuid
+  alertType    String    @map("alert_type") // high_mortality | low_production | low_feed | custom
+  message      String
+  severity     String // info | warning | critical
+  status       String    @default("active") // active | dismissed
+  triggeredAt  DateTime  @map("triggered_at")
+  dismissedAt  DateTime? @map("dismissed_at")
+  dismissedBy  String?   @map("dismissed_by") @db.Uuid
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  farm       Farm        @relation(fields: [farmId], references: [id])
+  flockBatch FlockBatch? @relation(fields: [flockBatchId], references: [id])
+  dismisser  User?       @relation("DismissedByUser", fields: [dismissedBy], references: [id])
+
+  @@index([farmId, status], map: "alert_farm_id_status_idx")
+  @@map("alert")
+}

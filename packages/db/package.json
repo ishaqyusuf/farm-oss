@@ -7,16 +7,20 @@
   },
   "scripts": {
     "build": "tsc --noEmit",
-    "db:generate": "echo \"Add Prisma schema before generating client\"",
-    "db:migrate": "echo \"Add Prisma schema before running migrations\"",
-    "db:migrate:deploy": "echo \"Add Prisma schema before deploying migrations\"",
-    "db:studio": "echo \"Add Prisma schema before opening studio\"",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:migrate:deploy": "prisma migrate deploy",
+    "db:studio": "prisma studio",
     "lint": "biome check .",
     "typecheck": "tsc --noEmit"
   },
+  "dependencies": {
+    "@prisma/client": "^7.5.0"
+  },
   "devDependencies": {
     "@farm-oss/tsconfig": "workspace:*",
-    "@types/node": "^22.0.0"
+    "@types/node": "^22.0.0",
+    "prisma": "^7.5.0"
   }
 }
 
