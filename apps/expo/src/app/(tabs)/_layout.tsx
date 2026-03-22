@@ -41,6 +41,20 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="expenses"
+        options={{
+          title: "Expenses",
+          tabBarIcon: () => <TabIcon label="💰" />,
+        }}
+      />
+      <Tabs.Screen
+        name="sales"
+        options={{
+          title: "Sales",
+          tabBarIcon: () => <TabIcon label="🛒" />,
+        }}
+      />
+      <Tabs.Screen
         name="history"
         options={{
           title: "History",
