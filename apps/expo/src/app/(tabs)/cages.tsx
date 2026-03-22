@@ -22,7 +22,7 @@ function ageInWeeks(startDate: string | Date): number {
   return Math.floor(diffMs / (7 * 24 * 60 * 60 * 1000));
 }
 
-type ViewMode = "list" | "add" | "production";
+type ViewMode = "list" | "add" | "detail" | "production";
 
 export default function CagesScreen() {
   const { session } = useAuth();
@@ -42,6 +42,7 @@ export default function CagesScreen() {
 
   // ── Production form state ───────────────────────────────────────────
   const [prodEggCount, setProdEggCount] = useState("");
+  const [prodFeedKg, setProdFeedKg] = useState("");
   const [prodMortality, setProdMortality] = useState("");
   const [prodNotes, setProdNotes] = useState("");
 
@@ -53,6 +54,26 @@ export default function CagesScreen() {
 
   const cages = useQuery(cageListOpts);
 
+  // ── Production history query (only when viewing detail) ─────────────
+  const productionHistoryOpts = selectedCageId
+    ? trpc.cageProduction.list.queryOptions({
+        cageUnitId: selectedCageId,
+        limit: 14,
+      })
+    : null;
+
+  const productionHistory = useQuery({
+    ...(productionHistoryOpts ?? { queryKey: ["noop"], queryFn: () => [] }),
+    enabled: viewMode === "detail" && !!selectedCageId,
+  });
+
+  // ── Cage summary query ──────────────────────────────────────────────
+  const cageSummaryOpts = trpc.cageProduction.summary.queryOptions({
+    flockBatchId: PLACEHOLDER_FLOCK_BATCH_ID,
+  });
+
+  const cageSummary = useQuery(cageSummaryOpts);
+
   // ── Create cage mutation ────────────────────────────────────────────
   const createCage = useMutation(
     trpc.cageUnit.create.mutationOptions({
@@ -60,6 +81,7 @@ export default function CagesScreen() {
         Alert.alert("Saved", "Cage unit added successfully.");
         resetAddForm();
         queryClient.invalidateQueries({ queryKey: cageListOpts.queryKey });
+        queryClient.invalidateQueries({ queryKey: cageSummaryOpts.queryKey });
       },
       onError(error) {
         Alert.alert("Error", error.message);
@@ -74,6 +96,7 @@ export default function CagesScreen() {
         Alert.alert("Saved", "Production recorded successfully.");
         resetProductionForm();
         queryClient.invalidateQueries({ queryKey: cageListOpts.queryKey });
+        queryClient.invalidateQueries({ queryKey: cageSummaryOpts.queryKey });
       },
       onError(error) {
         Alert.alert("Error", error.message);
@@ -90,6 +113,7 @@ export default function CagesScreen() {
 
   function resetProductionForm() {
     setProdEggCount("");
+    setProdFeedKg("");
     setProdMortality("");
     setProdNotes("");
     setSelectedCageId(null);
@@ -122,7 +146,10 @@ export default function CagesScreen() {
       createCage.mutate(payload);
     } else {
       await enqueue("cageUnit.create", payload);
-      Alert.alert("Saved offline", "Cage unit queued and will sync when online.");
+      Alert.alert(
+        "Saved offline",
+        "Cage unit queued and will sync when online.",
+      );
       resetAddForm();
     }
   }
@@ -141,6 +168,9 @@ export default function CagesScreen() {
       cageUnitId: selectedCageId,
       recordDate: todayISO(),
       eggCount: prodEggCount ? Number(prodEggCount) : 0,
+      feedGrams: prodFeedKg
+        ? Math.round(Number(prodFeedKg) * 1000)
+        : undefined,
       mortality: prodMortality ? Number(prodMortality) : 0,
       notes: prodNotes || undefined,
     };
@@ -149,7 +179,10 @@ export default function CagesScreen() {
       createProduction.mutate(payload);
     } else {
       await enqueue("cageProduction.create", payload);
-      Alert.alert("Saved offline", "Production queued and will sync when online.");
+      Alert.alert(
+        "Saved offline",
+        "Production queued and will sync when online.",
+      );
       resetProductionForm();
     }
   }
@@ -235,6 +268,159 @@ export default function CagesScreen() {
     );
   }
 
+  // ── Cage detail / history view ──────────────────────────────────────
+  if (viewMode === "detail" && selectedCageId) {
+    const selectedCage = cages.data?.find((c) => c.id === selectedCageId);
+    const history = (productionHistory.data ?? []) as Array<{
+      id: string;
+      recordDate: string | Date;
+      eggCount: number;
+      feedGrams: number | null;
+      mortality: number;
+      notes: string | null;
+    }>;
+    return (
+      <RoleGuard allowed={SCREEN_ROLES.cages}>
+        <Screen theme={theme}>
+          <Card theme={theme} className="gap-3.5 p-6 rounded-[28px]">
+            <Text variant="tag" theme={theme} className={accentClass}>
+              Cage details
+            </Text>
+            <Text variant="heading" theme={theme}>
+              {selectedCage?.label ?? "—"}
+            </Text>
+            {selectedCage && (
+              <View className="gap-1">
+                <Text
+                  variant="detail"
+                  theme={theme}
+                  className={secondaryClass}
+                >
+                  🐔 {selectedCage.birdCount} birds · Age:{" "}
+                  {ageInWeeks(selectedCage.startDate)} weeks
+                </Text>
+                <Text
+                  variant="caption"
+                  theme={theme}
+                  className={subtextClass}
+                >
+                  Started{" "}
+                  {new Date(selectedCage.startDate).toLocaleDateString(
+                    "en-GB",
+                    { day: "numeric", month: "short", year: "numeric" },
+                  )}
+                </Text>
+                {selectedCage.notes && (
+                  <Text
+                    variant="caption"
+                    theme={theme}
+                    className={subtextClass}
+                  >
+                    {selectedCage.notes}
+                  </Text>
+                )}
+              </View>
+            )}
+            <View className="flex-row gap-2">
+              <Button
+                theme={theme}
+                onPress={() => setViewMode("production")}
+              >
+                ✏️ Record production
+              </Button>
+            </View>
+          </Card>
+
+          {/* ── Production history ────────────────────────────────────── */}
+          <Card variant="subtle" theme={theme}>
+            <Text variant="title" theme={theme}>
+              Production history
+            </Text>
+
+            {productionHistory.isLoading && (
+              <Text variant="detail" theme={theme} className={subtextClass}>
+                Loading records…
+              </Text>
+            )}
+
+            {productionHistory.isError && (
+              <Text variant="detail" theme={theme} className={accentClass}>
+                Could not load production history.
+              </Text>
+            )}
+
+            {history.length === 0 && !productionHistory.isLoading && (
+              <Text variant="detail" theme={theme} className={subtextClass}>
+                No production records yet for this cage.
+              </Text>
+            )}
+          </Card>
+
+          {history.map((record) => (
+            <Card key={record.id} variant="subtle" theme={theme}>
+              <View className="flex-row justify-between items-center">
+                <Text variant="label" theme={theme}>
+                  {new Date(record.recordDate).toLocaleDateString("en-GB", {
+                    day: "numeric",
+                    month: "short",
+                    year: "numeric",
+                  })}
+                </Text>
+                {record.mortality > 0 && (
+                  <Text
+                    variant="caption"
+                    theme={theme}
+                    className={accentClass}
+                  >
+                    ⚠ {record.mortality} mortality
+                  </Text>
+                )}
+              </View>
+              <View className="gap-1">
+                <Text
+                  variant="detail"
+                  theme={theme}
+                  className={secondaryClass}
+                >
+                  🥚 {record.eggCount} eggs
+                </Text>
+                {record.feedGrams != null && (
+                  <Text
+                    variant="detail"
+                    theme={theme}
+                    className={secondaryClass}
+                  >
+                    🌾 {(record.feedGrams / 1000).toFixed(1)} kg feed
+                  </Text>
+                )}
+                {record.notes && (
+                  <Text
+                    variant="caption"
+                    theme={theme}
+                    className={subtextClass}
+                  >
+                    {record.notes}
+                  </Text>
+                )}
+              </View>
+            </Card>
+          ))}
+
+          <Button
+            variant="ghost"
+            theme={theme}
+            onPress={() => {
+              setSelectedCageId(null);
+              setViewMode("list");
+            }}
+          >
+            ← Back to cages
+          </Button>
+        </Screen>
+      </RoleGuard>
+    );
+  }
+
   // ── Record production form ──────────────────────────────────────────
   if (viewMode === "production" && selectedCageId) {
     const selectedCage = cages.data?.find((c) => c.id === selectedCageId);
@@ -261,6 +447,15 @@ export default function CagesScreen() {
             placeholder="e.g. 5"
             value={prodEggCount}
             onChangeText={setProdEggCount}
+            keyboardType="numeric"
+            theme={theme}
+          />
+
+          <Input
+            label="Feed given (kg)"
+            placeholder="e.g. 0.5"
+            value={prodFeedKg}
+            onChangeText={setProdFeedKg}
             keyboardType="numeric"
             theme={theme}
           />
@@ -331,6 +526,45 @@ export default function CagesScreen() {
           </Button>
         </Card>
 
+        {/* ── Today's cage summary ───────────────────────────────────── */}
+        {cageSummary.data && cageSummary.data.totalCages > 0 && (
+          <Card variant="subtle" theme={theme}>
+            <Text variant="title" theme={theme}>
+              Today's cage summary
+            </Text>
+            <View className="flex-row justify-between">
+              <SummaryCell
+                label="🥚 Eggs"
+                value={cageSummary.data.totalEggs}
+                theme={theme}
+              />
+              <SummaryCell
+                label="🌾 Feed"
+                value={
+                  cageSummary.data.totalFeedGrams > 0
+                    ? `${(cageSummary.data.totalFeedGrams / 1000).toFixed(1)} kg`
+                    : "—"
+                }
+                theme={theme}
+              />
+              <SummaryCell
+                label="⚠️ Mort."
+                value={cageSummary.data.totalMortality}
+                theme={theme}
+              />
+              <SummaryCell
+                label="🐔 Birds"
+                value={cageSummary.data.totalBirds}
+                theme={theme}
+              />
+            </View>
+            <Text variant="caption" theme={theme} className={subtextClass}>
+              {cageSummary.data.recordCount} of {cageSummary.data.totalCages}{" "}
+              cages recorded · {cageSummary.data.date}
+            </Text>
+          </Card>
+        )}
+
         {cages.isLoading && (
           <Card variant="subtle" theme={theme}>
             <Text variant="detail" theme={theme} className={subtextClass}>
@@ -361,7 +595,7 @@ export default function CagesScreen() {
             key={cage.id}
             onPress={() => {
               setSelectedCageId(cage.id);
-              setViewMode("production");
+              setViewMode("detail");
             }}
           >
             <Card variant="subtle" theme={theme}>
@@ -374,11 +608,19 @@ export default function CagesScreen() {
                 </Text>
               </View>
               <View className="flex-row justify-between items-center">
-                <Text variant="caption" theme={theme} className={secondaryClass}>
+                <Text
+                  variant="caption"
+                  theme={theme}
+                  className={secondaryClass}
+                >
                   Age: {ageInWeeks(cage.startDate)} weeks
                 </Text>
-                <Text variant="caption" theme={theme} className={subtextClass}>
-                  Tap to record production
+                <Text
+                  variant="caption"
+                  theme={theme}
+                  className={subtextClass}
+                >
+                  Tap for details →
                 </Text>
               </View>
               {cage.notes && (
@@ -391,5 +633,35 @@ export default function CagesScreen() {
         ))}
       </Screen>
     </RoleGuard>
+  );
+}
+
+/** Small metric display for the cage summary row. */
+function SummaryCell({
+  label,
+  value,
+  theme,
+}: {
+  label: string;
+  value: string | number;
+  theme: "dark" | "light";
+}) {
+  return (
+    <View className="items-center gap-1">
+      <Text
+        variant="caption"
+        theme={theme}
+        className={
+          theme === "dark"
+            ? "text-dark-text-tertiary"
+            : "text-light-text-tertiary"
+        }
+      >
+        {label}
+      </Text>
+      <Text variant="title" theme={theme}>
+        {value}
+      </Text>
+    </View>
   );
 }

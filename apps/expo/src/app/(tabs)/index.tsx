@@ -9,7 +9,7 @@ import { useSync } from "@/providers/sync-provider";
 export default function HomeScreen() {
   const { session, signOut } = useAuth();
   const { theme } = useTheme();
-  const { health, summary, batches } = useDashboardData();
+  const { health, summary, batches, cageSummary } = useDashboardData();
   const { status, pendingCount, isOnline } = useSync();
 
   const accentClass =
@@ -141,6 +141,42 @@ export default function HomeScreen() {
             </View>
           ))}
         </Card>
+
+        {/* ── Cage production ──────────────────────────────────────────── */}
+        {cageSummary.data && cageSummary.data.totalCages > 0 && (
+          <Card variant="subtle" theme={theme}>
+            <Text variant="title" theme={theme}>
+              Cage production today
+            </Text>
+            <View className="gap-2">
+              <View className="flex-row justify-between">
+                <MetricCell
+                  label="🥚 Cage eggs"
+                  value={cageSummary.data.totalEggs}
+                  theme={theme}
+                />
+                <MetricCell
+                  label="🌾 Feed"
+                  value={
+                    cageSummary.data.totalFeedGrams > 0
+                      ? `${(cageSummary.data.totalFeedGrams / 1000).toFixed(1)} kg`
+                      : "—"
+                  }
+                  theme={theme}
+                />
+                <MetricCell
+                  label="🐔 Birds"
+                  value={cageSummary.data.totalBirds}
+                  theme={theme}
+                />
+              </View>
+              <Text variant="caption" theme={theme} className={subtextClass}>
+                {cageSummary.data.recordCount} of {cageSummary.data.totalCages}{" "}
+                cages recorded
+              </Text>
+            </View>
+          </Card>
+        )}
 
         {/* ── API status ───────────────────────────────────────────────── */}
         <Card variant="subtle" theme={theme}>

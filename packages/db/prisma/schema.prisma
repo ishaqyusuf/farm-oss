@@ -132,6 +132,8 @@ model CageProduction {
   cageUnitId String   @map("cage_unit_id") @db.Uuid
   recordDate DateTime @map("record_date") @db.Date
   eggCount   Int      @default(0) @map("egg_count")
+  feedGrams  Int?     @map("feed_grams") // feed consumed in grams (display as kg)
+  waterMl    Int?     @map("water_ml") // water consumed in millilitres
   mortality  Int      @default(0)
   notes      String?
   createdAt  DateTime @default(now()) @map("created_at")

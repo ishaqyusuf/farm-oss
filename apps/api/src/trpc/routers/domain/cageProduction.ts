@@ -14,6 +14,9 @@ export const cageProductionRouter = createTRPCRouter({
         where: { cageUnitId: input.cageUnitId },
         orderBy: { recordDate: "desc" },
         take: input.limit,
+        include: {
+          cageUnit: { select: { id: true, label: true, birdCount: true } },
+        },
       });
 
       return records;
@@ -25,6 +28,8 @@ export const cageProductionRouter = createTRPCRouter({
         cageUnitId: z.string().uuid(),
         recordDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
         eggCount: z.number().int().min(0).default(0),
+        feedGrams: z.number().int().min(0).optional(),
+        waterMl: z.number().int().min(0).optional(),
         mortality: z.number().int().min(0).default(0),
         notes: z.string().optional(),
       }),
@@ -36,6 +41,8 @@ export const cageProductionRouter = createTRPCRouter({
             cageUnitId: input.cageUnitId,
             recordDate: new Date(input.recordDate),
             eggCount: input.eggCount,
+            feedGrams: input.feedGrams,
+            waterMl: input.waterMl,
             mortality: input.mortality,
             notes: input.notes,
           },
@@ -67,6 +74,14 @@ export const cageProductionRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       const targetDate = input.date ?? new Date().toISOString().slice(0, 10);
 
+      const cageUnits = await ctx.db.cageUnit.findMany({
+        where: {
+          flockBatchId: input.flockBatchId,
+          deletedAt: null,
+        },
+        select: { id: true, label: true, birdCount: true, startDate: true },
+      });
+
       const records = await ctx.db.cageProduction.findMany({
         where: {
           recordDate: new Date(targetDate),
@@ -81,12 +96,25 @@ export const cageProductionRouter = createTRPCRouter({
       });
 
       const totalEggs = records.reduce((sum, r) => sum + r.eggCount, 0);
+      const totalFeedGrams = records.reduce(
+        (sum, r) => sum + (r.feedGrams ?? 0),
+        0,
+      );
+      const totalWaterMl = records.reduce(
+        (sum, r) => sum + (r.waterMl ?? 0),
+        0,
+      );
       const totalMortality = records.reduce((sum, r) => sum + r.mortality, 0);
+      const totalBirds = cageUnits.reduce((sum, u) => sum + u.birdCount, 0);
 
       return {
         date: targetDate,
         totalEggs,
+        totalFeedGrams,
+        totalWaterMl,
         totalMortality,
+        totalBirds,
+        totalCages: cageUnits.length,
         recordCount: records.length,
         records,
       };

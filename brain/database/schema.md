@@ -82,6 +82,42 @@ A group of birds managed together. Belongs to a farm.
 | created_at | timestamp | no | |
 | updated_at | timestamp | no | |
 
+### CageUnit
+Individual cage within a battery cage system. Belongs to a FlockBatch.
+
+| Column | Type | Nullable | Notes |
+|--------|------|----------|-------|
+| id | uuid | no | PK |
+| flock_batch_id | uuid | no | FK → FlockBatch |
+| label | text | no | Cage identifier, e.g. "A1", "Row-3" |
+| bird_count | integer | no | Current number of birds in this cage |
+| start_date | date | no | When birds were placed in this cage |
+| status | text | no | One of: `active`, `inactive`. Default `active` |
+| notes | text | yes | Free-text observation |
+| deleted_at | timestamp | yes | Soft delete |
+| created_at | timestamp | no | |
+| updated_at | timestamp | no | |
+
+Unique: (`flock_batch_id`, `label`) — one label per cage per batch.
+
+### CageProduction
+Daily production record per cage unit. Tracks eggs, feed, and mortality at the individual cage level.
+
+| Column | Type | Nullable | Notes |
+|--------|------|----------|-------|
+| id | uuid | no | PK |
+| cage_unit_id | uuid | no | FK → CageUnit |
+| record_date | date | no | The calendar date this record covers |
+| egg_count | integer | no | Eggs collected from this cage, default `0` |
+| feed_grams | integer | yes | Feed consumed in grams (display as kg) |
+| water_ml | integer | yes | Water consumed in millilitres |
+| mortality | integer | no | Birds lost this day, default `0` |
+| notes | text | yes | Free-text observation |
+| created_at | timestamp | no | |
+| updated_at | timestamp | no | |
+
+Unique: (`cage_unit_id`, `record_date`) — one record per cage per day.
+
 ### DailyRecord
 One record per batch per date. The core operational input.
 
@@ -158,13 +194,18 @@ Derived notification surfaced by the system when metrics indicate an issue.
 ## Key Relationships
 - Tenant → has many Farms, Users.
 - Farm → belongs to Tenant. Has many FlockBatches, Expenses, Sales, Alerts.
-- FlockBatch → belongs to Farm. Has many DailyRecords. Optionally referenced by Expenses, Sales, Alerts.
+- FlockBatch → belongs to Farm. Has many DailyRecords, CageUnits. Optionally referenced by Expenses, Sales, Alerts.
+- CageUnit → belongs to FlockBatch. Has many CageProductions.
+- CageProduction → belongs to CageUnit. Mortality on creation decrements CageUnit.birdCount via transaction.
 - DailyRecord → belongs to FlockBatch. Optionally references recording User.
 - User → belongs to Tenant. Referenced by DailyRecord (recorded_by) and Alert (dismissed_by).
 
 ## Indexes (recommended)
 - `daily_record(flock_batch_id, record_date)` — unique, primary lookup.
 - `flock_batch(farm_id, status)` — list active batches per farm.
+- `cage_unit(flock_batch_id, status)` — list active cages per batch.
+- `cage_unit(flock_batch_id, label)` — unique, cage label per batch.
+- `cage_production(cage_unit_id, record_date)` — unique, one record per cage per day.
 - `expense(farm_id, expense_date)` — expense reporting.
 - `sale(farm_id, sale_date)` — revenue reporting.
 - `alert(farm_id, status)` — active alert lookup.
