@@ -4,9 +4,9 @@ import { Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { useAuth, AuthProvider } from "@/providers/auth-provider";
-import { ThemeProvider, useTheme } from "@/providers/theme-provider";
+import { AuthProvider, useAuth } from "@/providers/auth-provider";
 import { SyncProvider } from "@/providers/sync-provider";
+import { ThemeProvider, useTheme } from "@/providers/theme-provider";
 import { TRPCReactProvider } from "@/trpc/client";
 
 /** Redirects unauthenticated users to login and authenticated users away from it. */
@@ -31,7 +31,7 @@ function AuthGate({ children }: { children: React.ReactNode }) {
 }
 
 function InnerLayout() {
-  const { theme, isDark } = useTheme();
+  const { isDark } = useTheme();
 
   return (
     <>

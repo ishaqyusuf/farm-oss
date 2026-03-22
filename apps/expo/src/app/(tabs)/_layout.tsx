@@ -2,8 +2,8 @@ import { Tabs } from "expo-router";
 import { Text as RNText } from "react-native";
 import { SCREEN_ROLES } from "@/components/RoleGuard";
 import { useAuth } from "@/providers/auth-provider";
-import { useTheme } from "@/providers/theme-provider";
 import { useSync } from "@/providers/sync-provider";
+import { useTheme } from "@/providers/theme-provider";
 
 function TabIcon({ label }: { label: string }) {
   return <RNText style={{ fontSize: 20 }}>{label}</RNText>;
@@ -30,17 +30,13 @@ export default function TabLayout() {
         headerShown: false,
         tabBarStyle: {
           backgroundColor: isDark ? "#17301f" : "#ffffff",
-          borderTopColor: isDark
-            ? "rgba(255,255,255,0.08)"
-            : "#ded5c3",
+          borderTopColor: isDark ? "rgba(255,255,255,0.08)" : "#ded5c3",
           borderTopWidth: 1,
           height: 56,
           paddingBottom: 6,
         },
         tabBarActiveTintColor: isDark ? "#e9b949" : "#2f6b3b",
-        tabBarInactiveTintColor: isDark
-          ? "rgba(247,240,222,0.76)"
-          : "#5d6558",
+        tabBarInactiveTintColor: isDark ? "rgba(247,240,222,0.76)" : "#5d6558",
         tabBarLabelStyle: {
           fontSize: 11,
           fontWeight: "600",

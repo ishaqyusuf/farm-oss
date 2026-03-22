@@ -1,14 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { ActivityIndicator, Alert, Pressable, View } from "react-native";
-import { Button, Card, Input, Screen, Text } from "@/components/ui";
 import { RoleGuard, SCREEN_ROLES } from "@/components/RoleGuard";
+import { Button, Card, Input, Screen, Text } from "@/components/ui";
 import { PLACEHOLDER_FARM_ID } from "@/lib/constants";
 import { formatNaira, toKobo } from "@/lib/currency";
 import { enqueue } from "@/lib/offline-queue";
 import { useAuth } from "@/providers/auth-provider";
-import { useTheme } from "@/providers/theme-provider";
 import { useSync } from "@/providers/sync-provider";
+import { useTheme } from "@/providers/theme-provider";
 import { useTRPC } from "@/trpc/client";
 
 const SALE_TYPES = ["eggs", "birds", "other"] as const;
@@ -21,7 +21,7 @@ function todayISO() {
 
 export default function SalesScreen() {
   const { session } = useAuth();
-  const { theme } = useTheme();
+  const { isDark } = useTheme();
   const { isOnline } = useSync();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
@@ -114,45 +114,36 @@ export default function SalesScreen() {
 
   const isBusy = createSale.isPending;
 
-  const accentClass =
-    theme === "dark" ? "text-dark-accent" : "text-light-accent";
-  const subtextClass =
-    theme === "dark" ? "text-dark-text-tertiary" : "text-light-text-tertiary";
+  const accentClass = "text-light-accent dark:text-dark-accent";
+  const subtextClass = "text-light-text-tertiary dark:text-dark-text-tertiary";
   const secondaryClass =
-    theme === "dark" ? "text-dark-text-secondary" : "text-light-text-secondary";
+    "text-light-text-secondary dark:text-dark-text-secondary";
 
   const selectedChipBg =
-    theme === "dark"
-      ? "bg-dark-accent border-dark-accent"
-      : "bg-light-accent border-light-accent";
+    "bg-light-accent border-light-accent dark:bg-dark-accent dark:border-dark-accent";
   const unselectedChipBg =
-    theme === "dark"
-      ? "bg-dark-surface border-dark-border"
-      : "bg-light-surface border-light-border";
-  const selectedChipText =
-    theme === "dark" ? "text-dark-accent-text" : "text-light-accent-text";
+    "bg-light-surface border-light-border dark:bg-dark-surface dark:border-dark-border";
+  const selectedChipText = "text-light-accent-text dark:text-dark-accent-text";
 
   // ── New sale form ───────────────────────────────────────────────────
   if (showForm) {
     return (
       <RoleGuard allowed={SCREEN_ROLES.sales}>
-        <Screen theme={theme}>
-          <Card theme={theme}>
-            <Text variant="tag" theme={theme} className={accentClass}>
+        <Screen>
+          <Card>
+            <Text variant="tag" className={accentClass}>
               New sale
             </Text>
-            <Text variant="heading" theme={theme}>
-              Record a sale
-            </Text>
+            <Text variant="heading">Record a sale</Text>
             {!isOnline && (
-              <Text variant="caption" theme={theme} className={subtextClass}>
+              <Text variant="caption" className={subtextClass}>
                 📡 Offline — will sync later
               </Text>
             )}
           </Card>
 
           <View className="gap-2">
-            <Text variant="label" theme={theme} className={secondaryClass}>
+            <Text variant="label" className={secondaryClass}>
               Sale type
             </Text>
             <View className="flex-row flex-wrap gap-2">
@@ -166,7 +157,6 @@ export default function SalesScreen() {
                 >
                   <Text
                     variant="label"
-                    theme={theme}
                     className={`capitalize ${saleType === st ? selectedChipText : ""}`}
                   >
                     {st}
@@ -182,7 +172,6 @@ export default function SalesScreen() {
             value={quantity}
             onChangeText={setQuantity}
             keyboardType="numeric"
-            theme={theme}
           />
 
           <Input
@@ -191,7 +180,6 @@ export default function SalesScreen() {
             value={unitPrice}
             onChangeText={setUnitPrice}
             keyboardType="numeric"
-            theme={theme}
           />
 
           <Input
@@ -204,7 +192,6 @@ export default function SalesScreen() {
             value={totalAmount}
             onChangeText={setTotalAmount}
             keyboardType="numeric"
-            theme={theme}
           />
 
           <Input
@@ -212,26 +199,19 @@ export default function SalesScreen() {
             placeholder="Crate sales – wholesale"
             value={description}
             onChangeText={setDescription}
-            theme={theme}
           />
 
           <View className="gap-2.5">
-            <Button theme={theme} onPress={handleSave} disabled={isBusy}>
+            <Button onPress={handleSave} disabled={isBusy}>
               {isBusy ? (
-                <ActivityIndicator
-                  color={theme === "dark" ? "#18210f" : "#f6f1e6"}
-                />
+                <ActivityIndicator color={isDark ? "#18210f" : "#f6f1e6"} />
               ) : isOnline ? (
                 "Save sale"
               ) : (
                 "Save offline"
               )}
             </Button>
-            <Button
-              variant="ghost"
-              theme={theme}
-              onPress={() => setShowForm(false)}
-            >
+            <Button variant="ghost" onPress={() => setShowForm(false)}>
               Cancel
             </Button>
           </View>
@@ -243,65 +223,62 @@ export default function SalesScreen() {
   // ── Sales list ──────────────────────────────────────────────────────
   return (
     <RoleGuard allowed={SCREEN_ROLES.sales}>
-      <Screen theme={theme}>
-        <Card theme={theme} className="gap-3.5 p-6 rounded-[28px]">
-          <Text variant="tag" theme={theme} className={accentClass}>
+      <Screen>
+        <Card className="gap-3.5 p-6 rounded-[28px]">
+          <Text variant="tag" className={accentClass}>
             Sales
           </Text>
-          <Text variant="heading" theme={theme}>
-            Revenue log
-          </Text>
-          <Button theme={theme} onPress={() => setShowForm(true)}>
-            + New sale
-          </Button>
+          <Text variant="heading">Revenue log</Text>
+          <Button onPress={() => setShowForm(true)}>+ New sale</Button>
         </Card>
 
         {sales.isLoading && (
-          <Card variant="subtle" theme={theme}>
-            <Text variant="detail" theme={theme} className={subtextClass}>
+          <Card variant="subtle">
+            <Text variant="detail" className={subtextClass}>
               Loading sales…
             </Text>
           </Card>
         )}
 
         {sales.isError && (
-          <Card variant="subtle" theme={theme}>
-            <Text variant="detail" theme={theme} className={accentClass}>
-              Could not load sales. The API may be offline or no farm exists yet.
+          <Card variant="subtle">
+            <Text variant="detail" className={accentClass}>
+              Could not load sales. The API may be offline or no farm exists
+              yet.
             </Text>
           </Card>
         )}
 
         {sales.data?.length === 0 && (
-          <Card variant="subtle" theme={theme}>
-            <Text variant="detail" theme={theme} className={subtextClass}>
+          <Card variant="subtle">
+            <Text variant="detail" className={subtextClass}>
               No sales yet. Tap "+ New sale" to add one.
             </Text>
           </Card>
         )}
 
         {sales.data?.map((sale) => (
-          <Card key={sale.id} variant="subtle" theme={theme}>
+          <Card key={sale.id} variant="subtle">
             <View className="flex-row justify-between items-center">
-              <Text variant="label" theme={theme} className="capitalize">
+              <Text variant="label" className="capitalize">
                 {sale.saleType}
               </Text>
-              <Text variant="label" theme={theme} className={accentClass}>
+              <Text variant="label" className={accentClass}>
                 {formatNaira(sale.totalAmount)}
               </Text>
             </View>
             {sale.quantity != null && (
-              <Text variant="detail" theme={theme} className={secondaryClass}>
+              <Text variant="detail" className={secondaryClass}>
                 {sale.quantity} units
                 {sale.unitPrice != null && ` × ${formatNaira(sale.unitPrice)}`}
               </Text>
             )}
             {sale.description && (
-              <Text variant="detail" theme={theme} className={secondaryClass}>
+              <Text variant="detail" className={secondaryClass}>
                 {sale.description}
               </Text>
             )}
-            <Text variant="caption" theme={theme} className={subtextClass}>
+            <Text variant="caption" className={subtextClass}>
               {new Date(sale.saleDate).toLocaleDateString("en-GB", {
                 day: "numeric",
                 month: "short",

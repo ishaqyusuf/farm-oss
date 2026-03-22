@@ -10,11 +10,9 @@ type Variant =
   | "label"
   | "caption"
   | "tag";
-type ThemeVariant = "dark" | "light";
 
 type Props = TextProps & {
   variant?: Variant;
-  theme?: ThemeVariant;
   children?: ReactNode;
 };
 
@@ -29,21 +27,13 @@ const variantClasses: Record<Variant, string> = {
   caption: "text-[13px] leading-[18px]",
 };
 
-const themeTextClasses: Record<ThemeVariant, string> = {
-  dark: "text-dark-text",
-  light: "text-light-text",
-};
-
-export function Text({
-  variant = "body",
-  theme,
-  className = "",
-  ...rest
-}: Props) {
+export function Text({ variant = "body", className = "", ...rest }: Props) {
   const base = variantClasses[variant];
-  const themeClass = theme ? themeTextClasses[theme] : "";
 
   return (
-    <RNText className={`${base} ${themeClass} ${className}`.trim()} {...rest} />
+    <RNText
+      className={`${base} text-light-text dark:text-dark-text ${className}`.trim()}
+      {...rest}
+    />
   );
 }

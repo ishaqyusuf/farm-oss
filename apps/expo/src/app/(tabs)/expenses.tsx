@@ -1,14 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { ActivityIndicator, Alert, Pressable, View } from "react-native";
-import { Button, Card, Input, Screen, Text } from "@/components/ui";
 import { RoleGuard, SCREEN_ROLES } from "@/components/RoleGuard";
+import { Button, Card, Input, Screen, Text } from "@/components/ui";
 import { PLACEHOLDER_FARM_ID } from "@/lib/constants";
 import { formatNaira, toKobo } from "@/lib/currency";
 import { enqueue } from "@/lib/offline-queue";
 import { useAuth } from "@/providers/auth-provider";
-import { useTheme } from "@/providers/theme-provider";
 import { useSync } from "@/providers/sync-provider";
+import { useTheme } from "@/providers/theme-provider";
 import { useTRPC } from "@/trpc/client";
 
 const CATEGORIES = [
@@ -27,7 +27,7 @@ function todayISO() {
 
 export default function ExpensesScreen() {
   const { session } = useAuth();
-  const { theme } = useTheme();
+  const { isDark } = useTheme();
   const { isOnline } = useSync();
   const trpc = useTRPC();
   const queryClient = useQueryClient();
@@ -102,45 +102,36 @@ export default function ExpensesScreen() {
 
   const isBusy = createExpense.isPending;
 
-  const accentClass =
-    theme === "dark" ? "text-dark-accent" : "text-light-accent";
-  const subtextClass =
-    theme === "dark" ? "text-dark-text-tertiary" : "text-light-text-tertiary";
+  const accentClass = "text-light-accent dark:text-dark-accent";
+  const subtextClass = "text-light-text-tertiary dark:text-dark-text-tertiary";
   const secondaryClass =
-    theme === "dark" ? "text-dark-text-secondary" : "text-light-text-secondary";
+    "text-light-text-secondary dark:text-dark-text-secondary";
 
   const selectedChipBg =
-    theme === "dark"
-      ? "bg-dark-accent border-dark-accent"
-      : "bg-light-accent border-light-accent";
+    "bg-light-accent border-light-accent dark:bg-dark-accent dark:border-dark-accent";
   const unselectedChipBg =
-    theme === "dark"
-      ? "bg-dark-surface border-dark-border"
-      : "bg-light-surface border-light-border";
-  const selectedChipText =
-    theme === "dark" ? "text-dark-accent-text" : "text-light-accent-text";
+    "bg-light-surface border-light-border dark:bg-dark-surface dark:border-dark-border";
+  const selectedChipText = "text-light-accent-text dark:text-dark-accent-text";
 
   // ── New expense form ────────────────────────────────────────────────
   if (showForm) {
     return (
       <RoleGuard allowed={SCREEN_ROLES.expenses}>
-        <Screen theme={theme}>
-          <Card theme={theme}>
-            <Text variant="tag" theme={theme} className={accentClass}>
+        <Screen>
+          <Card>
+            <Text variant="tag" className={accentClass}>
               New expense
             </Text>
-            <Text variant="heading" theme={theme}>
-              Log a farm expense
-            </Text>
+            <Text variant="heading">Log a farm expense</Text>
             {!isOnline && (
-              <Text variant="caption" theme={theme} className={subtextClass}>
+              <Text variant="caption" className={subtextClass}>
                 📡 Offline — will sync later
               </Text>
             )}
           </Card>
 
           <View className="gap-2">
-            <Text variant="label" theme={theme} className={secondaryClass}>
+            <Text variant="label" className={secondaryClass}>
               Category
             </Text>
             <View className="flex-row flex-wrap gap-2">
@@ -154,7 +145,6 @@ export default function ExpensesScreen() {
                 >
                   <Text
                     variant="label"
-                    theme={theme}
                     className={`capitalize ${category === cat ? selectedChipText : ""}`}
                   >
                     {cat}
@@ -170,7 +160,6 @@ export default function ExpensesScreen() {
             value={amount}
             onChangeText={setAmount}
             keyboardType="numeric"
-            theme={theme}
           />
 
           <Input
@@ -178,26 +167,19 @@ export default function ExpensesScreen() {
             placeholder="Layer mash – 50 bags"
             value={description}
             onChangeText={setDescription}
-            theme={theme}
           />
 
           <View className="gap-2.5">
-            <Button theme={theme} onPress={handleSave} disabled={isBusy}>
+            <Button onPress={handleSave} disabled={isBusy}>
               {isBusy ? (
-                <ActivityIndicator
-                  color={theme === "dark" ? "#18210f" : "#f6f1e6"}
-                />
+                <ActivityIndicator color={isDark ? "#18210f" : "#f6f1e6"} />
               ) : isOnline ? (
                 "Save expense"
               ) : (
                 "Save offline"
               )}
             </Button>
-            <Button
-              variant="ghost"
-              theme={theme}
-              onPress={() => setShowForm(false)}
-            >
+            <Button variant="ghost" onPress={() => setShowForm(false)}>
               Cancel
             </Button>
           </View>
@@ -209,30 +191,26 @@ export default function ExpensesScreen() {
   // ── Expense list ────────────────────────────────────────────────────
   return (
     <RoleGuard allowed={SCREEN_ROLES.expenses}>
-      <Screen theme={theme}>
-        <Card theme={theme} className="gap-3.5 p-6 rounded-[28px]">
-          <Text variant="tag" theme={theme} className={accentClass}>
+      <Screen>
+        <Card className="gap-3.5 p-6 rounded-[28px]">
+          <Text variant="tag" className={accentClass}>
             Expenses
           </Text>
-          <Text variant="heading" theme={theme}>
-            Farm spending
-          </Text>
-          <Button theme={theme} onPress={() => setShowForm(true)}>
-            + New expense
-          </Button>
+          <Text variant="heading">Farm spending</Text>
+          <Button onPress={() => setShowForm(true)}>+ New expense</Button>
         </Card>
 
         {expenses.isLoading && (
-          <Card variant="subtle" theme={theme}>
-            <Text variant="detail" theme={theme} className={subtextClass}>
+          <Card variant="subtle">
+            <Text variant="detail" className={subtextClass}>
               Loading expenses…
             </Text>
           </Card>
         )}
 
         {expenses.isError && (
-          <Card variant="subtle" theme={theme}>
-            <Text variant="detail" theme={theme} className={accentClass}>
+          <Card variant="subtle">
+            <Text variant="detail" className={accentClass}>
               Could not load expenses. The API may be offline or no farm exists
               yet.
             </Text>
@@ -240,29 +218,29 @@ export default function ExpensesScreen() {
         )}
 
         {expenses.data?.length === 0 && (
-          <Card variant="subtle" theme={theme}>
-            <Text variant="detail" theme={theme} className={subtextClass}>
+          <Card variant="subtle">
+            <Text variant="detail" className={subtextClass}>
               No expenses yet. Tap "+ New expense" to add one.
             </Text>
           </Card>
         )}
 
         {expenses.data?.map((expense) => (
-          <Card key={expense.id} variant="subtle" theme={theme}>
+          <Card key={expense.id} variant="subtle">
             <View className="flex-row justify-between items-center">
-              <Text variant="label" theme={theme} className="capitalize">
+              <Text variant="label" className="capitalize">
                 {expense.category}
               </Text>
-              <Text variant="label" theme={theme} className={accentClass}>
+              <Text variant="label" className={accentClass}>
                 {formatNaira(expense.amount)}
               </Text>
             </View>
             {expense.description && (
-              <Text variant="detail" theme={theme} className={secondaryClass}>
+              <Text variant="detail" className={secondaryClass}>
                 {expense.description}
               </Text>
             )}
-            <Text variant="caption" theme={theme} className={subtextClass}>
+            <Text variant="caption" className={subtextClass}>
               {new Date(expense.expenseDate).toLocaleDateString("en-GB", {
                 day: "numeric",
                 month: "short",

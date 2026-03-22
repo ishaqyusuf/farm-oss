@@ -1,41 +1,36 @@
-import { ActivityIndicator, View } from "react-native";
-import { Button, Card, Screen, Text } from "@/components/ui";
+import { View } from "react-native";
 import { RoleGuard, SCREEN_ROLES } from "@/components/RoleGuard";
+import { Button, Card, Screen, Text } from "@/components/ui";
 import { useDashboardData } from "@/hooks/use-dashboard-data";
 import { useAuth } from "@/providers/auth-provider";
-import { useTheme } from "@/providers/theme-provider";
 import { useSync } from "@/providers/sync-provider";
 
 export default function HomeScreen() {
   const { session, signOut } = useAuth();
-  const { theme } = useTheme();
   const { health, summary, batches, cageSummary } = useDashboardData();
-  const { status, pendingCount, isOnline } = useSync();
+  const { pendingCount, isOnline } = useSync();
 
-  const accentClass =
-    theme === "dark" ? "text-dark-accent" : "text-light-accent";
-  const subtextClass =
-    theme === "dark" ? "text-dark-text-tertiary" : "text-light-text-tertiary";
+  const accentClass = "text-light-accent dark:text-dark-accent";
+  const subtextClass = "text-light-text-tertiary dark:text-dark-text-tertiary";
   const secondaryClass =
-    theme === "dark" ? "text-dark-text-secondary" : "text-light-text-secondary";
+    "text-light-text-secondary dark:text-dark-text-secondary";
 
   return (
     <RoleGuard allowed={SCREEN_ROLES.index}>
-      <Screen theme={theme}>
+      <Screen>
         {/* ── Welcome card ─────────────────────────────────────────────── */}
-        <Card theme={theme} className="gap-3.5 p-6 rounded-[28px]">
-          <Text variant="tag" theme={theme} className={accentClass}>
+        <Card className="gap-3.5 p-6 rounded-[28px]">
+          <Text variant="tag" className={accentClass}>
             Dashboard
           </Text>
-          <Text variant="hero" theme={theme}>
-            Farm records{"\n"}in your pocket.
-          </Text>
+          <Text variant="hero">Farm records{"\n"}in your pocket.</Text>
           {session && (
             <View className="gap-2.5">
-              <Text variant="detail" theme={theme} className={secondaryClass}>
-                {session.user.name} · {session.user.role} · ID {session.user.userId}
+              <Text variant="detail" className={secondaryClass}>
+                {session.user.name} · {session.user.role} · ID{" "}
+                {session.user.userId}
               </Text>
-              <Button variant="ghost" theme={theme} onPress={() => signOut()}>
+              <Button variant="ghost" onPress={() => signOut()}>
                 Sign out
               </Button>
             </View>
@@ -44,18 +39,18 @@ export default function HomeScreen() {
 
         {/* ── Sync status ──────────────────────────────────────────────── */}
         {(!isOnline || pendingCount > 0) && (
-          <Card variant="subtle" theme={theme}>
+          <Card variant="subtle">
             <View className="flex-row items-center gap-2">
-              <Text variant="caption" theme={theme}>
+              <Text variant="caption">
                 {!isOnline ? "📡 Offline" : "🔄 Syncing"}
               </Text>
               {pendingCount > 0 && (
-                <Text variant="caption" theme={theme} className={accentClass}>
+                <Text variant="caption" className={accentClass}>
                   {pendingCount} pending
                 </Text>
               )}
             </View>
-            <Text variant="caption" theme={theme} className={subtextClass}>
+            <Text variant="caption" className={subtextClass}>
               {!isOnline
                 ? "Data will be saved locally and synced when you're back online."
                 : "Uploading queued records…"}
@@ -64,17 +59,15 @@ export default function HomeScreen() {
         )}
 
         {/* ── Today's summary ──────────────────────────────────────────── */}
-        <Card variant="subtle" theme={theme}>
-          <Text variant="title" theme={theme}>
-            Today's summary
-          </Text>
+        <Card variant="subtle">
+          <Text variant="title">Today's summary</Text>
           {summary.isLoading && (
-            <Text variant="detail" theme={theme} className={subtextClass}>
+            <Text variant="detail" className={subtextClass}>
               Loading metrics…
             </Text>
           )}
           {summary.isError && (
-            <Text variant="detail" theme={theme} className={subtextClass}>
+            <Text variant="detail" className={subtextClass}>
               Could not load summary. The API may be offline or no farm data
               exists yet.
             </Text>
@@ -82,23 +75,17 @@ export default function HomeScreen() {
           {summary.data && (
             <View className="gap-2">
               <View className="flex-row justify-between">
-                <MetricCell
-                  label="🥚 Eggs"
-                  value={summary.data.eggCount}
-                  theme={theme}
-                />
+                <MetricCell label="🥚 Eggs" value={summary.data.eggCount} />
                 <MetricCell
                   label="🌾 Feed"
                   value={`${(summary.data.feedGrams / 1000).toFixed(1)} kg`}
-                  theme={theme}
                 />
                 <MetricCell
                   label="⚠️ Mortality"
                   value={summary.data.mortality}
-                  theme={theme}
                 />
               </View>
-              <Text variant="caption" theme={theme} className={subtextClass}>
+              <Text variant="caption" className={subtextClass}>
                 {summary.data.recordCount} record
                 {summary.data.recordCount === 1 ? "" : "s"} for{" "}
                 {summary.data.date}
@@ -108,22 +95,20 @@ export default function HomeScreen() {
         </Card>
 
         {/* ── Active batches ───────────────────────────────────────────── */}
-        <Card variant="subtle" theme={theme}>
-          <Text variant="title" theme={theme}>
-            Active batches
-          </Text>
+        <Card variant="subtle">
+          <Text variant="title">Active batches</Text>
           {batches.isLoading && (
-            <Text variant="detail" theme={theme} className={subtextClass}>
+            <Text variant="detail" className={subtextClass}>
               Loading batches…
             </Text>
           )}
           {batches.isError && (
-            <Text variant="detail" theme={theme} className={subtextClass}>
+            <Text variant="detail" className={subtextClass}>
               Could not load batches.
             </Text>
           )}
           {batches.data?.length === 0 && (
-            <Text variant="detail" theme={theme} className={subtextClass}>
+            <Text variant="detail" className={subtextClass}>
               No active batches.
             </Text>
           )}
@@ -132,10 +117,8 @@ export default function HomeScreen() {
               key={batch.id}
               className="flex-row justify-between items-center"
             >
-              <Text variant="detail" theme={theme}>
-                {batch.name}
-              </Text>
-              <Text variant="caption" theme={theme} className={accentClass}>
+              <Text variant="detail">{batch.name}</Text>
+              <Text variant="caption" className={accentClass}>
                 {batch.currentCount} birds
               </Text>
             </View>
@@ -144,16 +127,13 @@ export default function HomeScreen() {
 
         {/* ── Cage production ──────────────────────────────────────────── */}
         {cageSummary.data && cageSummary.data.totalCages > 0 && (
-          <Card variant="subtle" theme={theme}>
-            <Text variant="title" theme={theme}>
-              Cage production today
-            </Text>
+          <Card variant="subtle">
+            <Text variant="title">Cage production today</Text>
             <View className="gap-2">
               <View className="flex-row justify-between">
                 <MetricCell
                   label="🥚 Cage eggs"
                   value={cageSummary.data.totalEggs}
-                  theme={theme}
                 />
                 <MetricCell
                   label="🌾 Feed"
@@ -162,15 +142,13 @@ export default function HomeScreen() {
                       ? `${(cageSummary.data.totalFeedGrams / 1000).toFixed(1)} kg`
                       : "—"
                   }
-                  theme={theme}
                 />
                 <MetricCell
                   label="🐔 Birds"
                   value={cageSummary.data.totalBirds}
-                  theme={theme}
                 />
               </View>
-              <Text variant="caption" theme={theme} className={subtextClass}>
+              <Text variant="caption" className={subtextClass}>
                 {cageSummary.data.recordCount} of {cageSummary.data.totalCages}{" "}
                 cages recorded
               </Text>
@@ -179,11 +157,9 @@ export default function HomeScreen() {
         )}
 
         {/* ── API status ───────────────────────────────────────────────── */}
-        <Card variant="subtle" theme={theme}>
-          <Text variant="title" theme={theme}>
-            API status
-          </Text>
-          <Text variant="detail" theme={theme} className={subtextClass}>
+        <Card variant="subtle">
+          <Text variant="title">API status</Text>
+          <Text variant="detail" className={subtextClass}>
             {health.data
               ? `API is ${health.data.status} — ${health.data.timestamp}`
               : "Connecting to API..."}
@@ -198,26 +174,19 @@ export default function HomeScreen() {
 function MetricCell({
   label,
   value,
-  theme,
 }: {
   label: string;
   value: string | number;
-  theme: "dark" | "light";
 }) {
   return (
     <View className="items-center gap-1">
       <Text
         variant="caption"
-        theme={theme}
-        className={
-          theme === "dark" ? "text-dark-text-tertiary" : "text-light-text-tertiary"
-        }
+        className="text-light-text-tertiary dark:text-dark-text-tertiary"
       >
         {label}
       </Text>
-      <Text variant="title" theme={theme}>
-        {value}
-      </Text>
+      <Text variant="title">{value}</Text>
     </View>
   );
 }

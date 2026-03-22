@@ -1,13 +1,13 @@
 import { useMutation } from "@tanstack/react-query";
 import { useState } from "react";
 import { ActivityIndicator, Alert, View } from "react-native";
-import { Button, Card, Input, Screen, Text } from "@/components/ui";
 import { RoleGuard, SCREEN_ROLES } from "@/components/RoleGuard";
+import { Button, Card, Input, Screen, Text } from "@/components/ui";
 import { PLACEHOLDER_FLOCK_BATCH_ID } from "@/lib/constants";
 import { enqueue } from "@/lib/offline-queue";
 import { useAuth } from "@/providers/auth-provider";
-import { useTheme } from "@/providers/theme-provider";
 import { useSync } from "@/providers/sync-provider";
+import { useTheme } from "@/providers/theme-provider";
 import { useTRPC } from "@/trpc/client";
 
 /** Format today as YYYY-MM-DD. */
@@ -17,7 +17,7 @@ function todayISO() {
 
 export default function RecordScreen() {
   const { session } = useAuth();
-  const { theme } = useTheme();
+  const { isDark } = useTheme();
   const { isOnline } = useSync();
   const trpc = useTRPC();
 
@@ -77,22 +77,20 @@ export default function RecordScreen() {
 
   const isBusy = createRecord.isPending;
 
-  const accentClass =
-    theme === "dark" ? "text-dark-accent" : "text-light-accent";
-  const subtextClass =
-    theme === "dark" ? "text-dark-text-tertiary" : "text-light-text-tertiary";
+  const accentClass = "text-light-accent dark:text-dark-accent";
+  const subtextClass = "text-light-text-tertiary dark:text-dark-text-tertiary";
 
   return (
     <RoleGuard allowed={SCREEN_ROLES.record}>
-      <Screen theme={theme}>
-        <Card theme={theme}>
-          <Text variant="tag" theme={theme} className={accentClass}>
+      <Screen>
+        <Card>
+          <Text variant="tag" className={accentClass}>
             Quick entry
           </Text>
-          <Text variant="heading" theme={theme}>
+          <Text variant="heading">
             Record today's flock activity in under a minute.
           </Text>
-          <Text variant="caption" theme={theme} className={subtextClass}>
+          <Text variant="caption" className={subtextClass}>
             {todayISO()}
             {!isOnline && "  ·  📡 Offline mode"}
           </Text>
@@ -104,7 +102,6 @@ export default function RecordScreen() {
           value={feedKg}
           onChangeText={setFeedKg}
           keyboardType="numeric"
-          theme={theme}
         />
 
         <Input
@@ -113,7 +110,6 @@ export default function RecordScreen() {
           value={eggCount}
           onChangeText={setEggCount}
           keyboardType="numeric"
-          theme={theme}
         />
 
         <Input
@@ -122,7 +118,6 @@ export default function RecordScreen() {
           value={mortality}
           onChangeText={setMortality}
           keyboardType="numeric"
-          theme={theme}
         />
 
         <Input
@@ -131,15 +126,12 @@ export default function RecordScreen() {
           value={notes}
           onChangeText={setNotes}
           multiline
-          theme={theme}
         />
 
         <View className="gap-2.5">
-          <Button theme={theme} onPress={handleSave} disabled={isBusy}>
+          <Button onPress={handleSave} disabled={isBusy}>
             {isBusy ? (
-              <ActivityIndicator
-                color={theme === "dark" ? "#18210f" : "#f6f1e6"}
-              />
+              <ActivityIndicator color={isDark ? "#18210f" : "#f6f1e6"} />
             ) : isOnline ? (
               "Save daily record"
             ) : (
@@ -147,7 +139,7 @@ export default function RecordScreen() {
             )}
           </Button>
           {createRecord.isSuccess && (
-            <Text variant="caption" theme={theme} className={accentClass}>
+            <Text variant="caption" className={accentClass}>
               ✓ Record saved
             </Text>
           )}
