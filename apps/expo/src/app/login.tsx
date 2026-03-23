@@ -6,7 +6,7 @@ import { useTheme } from "@/providers/theme-provider";
 
 export default function LoginScreen() {
   const { signIn } = useAuth();
-  const { theme } = useTheme();
+  const { isDark } = useTheme();
   const [userId, setUserId] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -17,7 +17,10 @@ export default function LoginScreen() {
       return;
     }
     if (password.length < 4) {
-      Alert.alert("Invalid password", "Password must be at least 4 characters.");
+      Alert.alert(
+        "Invalid password",
+        "Password must be at least 4 characters.",
+      );
       return;
     }
 
@@ -42,38 +45,36 @@ export default function LoginScreen() {
     }
   }
 
-  const isLight = theme === "light";
-  const accentClass = isLight ? "text-light-accent" : "text-dark-accent";
-  const subtextClass = isLight
-    ? "text-light-text-tertiary"
-    : "text-dark-text-tertiary";
+  const accentClass = "text-light-accent dark:text-dark-accent";
+  const subtextClass = "text-light-text-tertiary dark:text-dark-text-tertiary";
 
   return (
-    <Screen theme={theme}>
+    <Screen>
       <View className="flex-1 justify-center gap-6 py-10">
         {/* ── Header ─────────────────────────────────────────────────── */}
         <View className="items-center gap-2 mb-4">
-          <Text variant="hero" theme={theme} className="text-center">
+          <Text variant="hero" className="text-center">
             🌱
           </Text>
-          <Text variant="hero" theme={theme} className="text-center">
+          <Text variant="hero" className="text-center">
             Farm OSS
           </Text>
-          <Text variant="detail" theme={theme} className={`text-center ${subtextClass}`}>
+          <Text variant="detail" className={`text-center ${subtextClass}`}>
             Sign in with your 6-digit user ID
           </Text>
         </View>
 
         {/* ── Form ───────────────────────────────────────────────────── */}
-        <Card theme={theme} className="gap-5">
+        <Card className="gap-5">
           <Input
             label="User ID"
             placeholder="e.g. 100001"
             value={userId}
-            onChangeText={(text) => setUserId(text.replace(/\D/g, "").slice(0, 6))}
+            onChangeText={(text) =>
+              setUserId(text.replace(/\D/g, "").slice(0, 6))
+            }
             keyboardType="number-pad"
             maxLength={6}
-            theme={theme}
           />
 
           <Input
@@ -82,17 +83,20 @@ export default function LoginScreen() {
             value={password}
             onChangeText={setPassword}
             secureTextEntry
-            theme={theme}
           />
 
-          <Button theme={theme} onPress={handleSignIn} disabled={busy}>
-            {busy ? <ActivityIndicator color={isLight ? "#f6f1e6" : "#18210f"} /> : "Sign in"}
+          <Button onPress={handleSignIn} disabled={busy}>
+            {busy ? (
+              <ActivityIndicator color={isDark ? "#18210f" : "#f6f1e6"} />
+            ) : (
+              "Sign in"
+            )}
           </Button>
         </Card>
 
         {/* ── Demo shortcut ──────────────────────────────────────────── */}
         <Pressable onPress={handleDemo} disabled={busy}>
-          <Text variant="caption" theme={theme} className={`text-center ${accentClass}`}>
+          <Text variant="caption" className={`text-center ${accentClass}`}>
             Try demo account →
           </Text>
         </Pressable>

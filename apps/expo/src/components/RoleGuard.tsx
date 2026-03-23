@@ -3,7 +3,6 @@ import type { ReactNode } from "react";
 import { View } from "react-native";
 import { Text } from "@/components/ui";
 import { useAuth } from "@/providers/auth-provider";
-import { useTheme } from "@/providers/theme-provider";
 
 type Props = {
   /** Roles that are allowed to view this screen. */
@@ -20,23 +19,19 @@ type Props = {
  */
 export function RoleGuard({ allowed, children, fallback }: Props) {
   const { session } = useAuth();
-  const { theme } = useTheme();
 
   if (!session || !allowed.includes(session.user.role)) {
     if (fallback) return <>{fallback}</>;
 
     return (
       <View className="flex-1 items-center justify-center p-8">
-        <Text variant="title" theme={theme}>
-          🔒
-        </Text>
-        <Text variant="title" theme={theme} className="text-center mt-2">
+        <Text variant="title">🔒</Text>
+        <Text variant="title" className="text-center mt-2">
           Access restricted
         </Text>
         <Text
           variant="detail"
-          theme={theme}
-          className={`text-center mt-1 ${theme === "dark" ? "text-dark-text-tertiary" : "text-light-text-tertiary"}`}
+          className="text-center mt-1 text-light-text-tertiary dark:text-dark-text-tertiary"
         >
           You don't have permission to view this screen. Contact your farm
           manager for access.
