@@ -12,4 +12,5 @@ This file tracks work currently being executed.
 - None currently.
 
 ## Status Notes
-- Expense/sale screens and dashboard metrics completed 2026-03-22. See done.md for details.
+- Expense/sale screens and dashboard metrics completed 2026-03-22. See done.md.
+- RBAC + fish pond management + farm-scoped worker role completed 2026-03-29. See done.md.

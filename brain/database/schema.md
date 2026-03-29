@@ -42,23 +42,39 @@ App user. Belongs to exactly one tenant.
 |--------|------|----------|-------|
 | id | uuid | no | PK |
 | tenant_id | uuid | no | FK → Tenant |
+| user_id | char(6) | no | Unique 6-digit login identifier |
 | email | text | no | Login identifier |
 | name | text | no | Display name |
-| role | text | no | One of: `owner`, `manager`, `staff` |
+| role | text | no | One of: `owner`, `manager`, `worker` |
 | password_hash | text | no | Hashed password |
 | created_at | timestamp | no | |
 | updated_at | timestamp | no | |
 
-Unique: `email` (global).
+Unique: `email` (global), `user_id` (global).
+
+### FarmMember
+Farm-scoped role assignment. Workers must be assigned per farm. Owners/managers have implicit tenant-wide access and do not need entries here.
+
+| Column | Type | Nullable | Notes |
+|--------|------|----------|-------|
+| id | uuid | no | PK |
+| farm_id | uuid | no | FK → Farm |
+| user_id | uuid | no | FK → User |
+| role | text | no | `worker` (extendable) |
+| created_at | timestamp | no | |
+| updated_at | timestamp | no | |
+
+Unique: (`farm_id`, `user_id`).
 
 ### Farm
-Operational unit. A tenant can have one or more farms.
+Operational unit. A tenant can have one or more farms. `farm_type` determines which domain models apply.
 
 | Column | Type | Nullable | Notes |
 |--------|------|----------|-------|
 | id | uuid | no | PK |
 | tenant_id | uuid | no | FK → Tenant |
 | name | text | no | Farm display name |
+| farm_type | text | no | `poultry` \| `fish` (default `poultry`) |
 | location | text | yes | Free-text address or region |
 | deleted_at | timestamp | yes | Soft delete |
 | created_at | timestamp | no | |
@@ -137,14 +153,60 @@ One record per batch per date. The core operational input.
 
 Unique: (`flock_batch_id`, `record_date`) — one record per batch per day.
 
+### PondBatch
+A fish stocking cohort managed together. Belongs to a fish farm.
+
+| Column | Type | Nullable | Notes |
+|--------|------|----------|-------|
+| id | uuid | no | PK |
+| farm_id | uuid | no | FK → Farm (farmType = fish) |
+| name | text | no | Batch label |
+| species | text | no | `tilapia` \| `catfish` \| `salmon` \| `carp` \| `other` |
+| stocking_count | integer | no | Fish placed at start |
+| current_count | integer | no | Running count after mortality/harvest |
+| avg_weight_g | integer | yes | Average weight per fish at stocking (grams) |
+| water_type | text | yes | `fresh` \| `brackish` \| `salt` |
+| start_date | date | no | When fish were stocked |
+| end_date | date | yes | When batch was harvested/closed |
+| status | text | no | `active` \| `harvested` \| `closed`. Default `active` |
+| deleted_at | timestamp | yes | Soft delete |
+| created_at | timestamp | no | |
+| updated_at | timestamp | no | |
+
+### PondRecord
+Daily operational record per pond batch. Core fish pond input.
+
+| Column | Type | Nullable | Notes |
+|--------|------|----------|-------|
+| id | uuid | no | PK |
+| pond_batch_id | uuid | no | FK → PondBatch |
+| record_date | date | no | The calendar date |
+| feed_grams | integer | yes | Feed in grams (display as kg) |
+| feed_type | text | yes | `pellets` \| `live` \| `mixed` \| `other` |
+| ph_level | float | yes | Water pH (range 0–14, healthy 6.5–8.5) |
+| dissolved_oxygen_mgl | float | yes | Dissolved oxygen mg/L (healthy >5) |
+| water_temp_c | float | yes | Water temperature in Celsius |
+| water_change_percent | integer | yes | % of pond water replaced |
+| mortality | integer | no | Fish lost, default `0` |
+| mortality_notes | text | yes | Cause of death or observation |
+| harvest_count | integer | no | Fish removed (partial harvest), default `0` |
+| harvest_weight_g | integer | yes | Total harvest weight in grams |
+| notes | text | yes | General observation |
+| recorded_by | uuid | yes | FK → User |
+| created_at | timestamp | no | |
+| updated_at | timestamp | no | |
+
+Unique: (`pond_batch_id`, `record_date`) — one record per batch per day.
+
 ### Expense
-A cost event tied to a farm or a specific batch.
+A cost event tied to a farm or a specific batch. Supports both poultry and fish batch references.
 
 | Column | Type | Nullable | Notes |
 |--------|------|----------|-------|
 | id | uuid | no | PK |
 | farm_id | uuid | no | FK → Farm |
-| flock_batch_id | uuid | yes | FK → FlockBatch (null = farm-level expense) |
+| flock_batch_id | uuid | yes | FK → FlockBatch (poultry; null = farm-level) |
+| pond_batch_id | uuid | yes | FK → PondBatch (fish; null = farm-level) |
 | category | text | no | One of: `feed`, `medication`, `labor`, `equipment`, `other` |
 | description | text | yes | Free-text detail |
 | amount | integer | no | Minor currency units (e.g. kobo) |
@@ -155,14 +217,15 @@ A cost event tied to a farm or a specific batch.
 | updated_at | timestamp | no | |
 
 ### Sale
-Revenue event. Eggs sold, birds sold, or other farm income.
+Revenue event. Supports poultry and fish batch references.
 
 | Column | Type | Nullable | Notes |
 |--------|------|----------|-------|
 | id | uuid | no | PK |
 | farm_id | uuid | no | FK → Farm |
-| flock_batch_id | uuid | yes | FK → FlockBatch (null = farm-level sale) |
-| sale_type | text | no | One of: `eggs`, `birds`, `other` |
+| flock_batch_id | uuid | yes | FK → FlockBatch (poultry; null = farm-level) |
+| pond_batch_id | uuid | yes | FK → PondBatch (fish; null = farm-level) |
+| sale_type | text | no | One of: `eggs`, `birds`, `fish`, `other` |
 | description | text | yes | Free-text detail |
 | quantity | integer | yes | Number of units sold |
 | unit_price | integer | yes | Price per unit in minor currency |
@@ -180,8 +243,9 @@ Derived notification surfaced by the system when metrics indicate an issue.
 |--------|------|----------|-------|
 | id | uuid | no | PK |
 | farm_id | uuid | no | FK → Farm |
-| flock_batch_id | uuid | yes | FK → FlockBatch |
-| alert_type | text | no | One of: `high_mortality`, `low_production`, `low_feed`, `custom` |
+| flock_batch_id | uuid | yes | FK → FlockBatch (poultry) |
+| pond_batch_id | uuid | yes | FK → PondBatch (fish) |
+| alert_type | text | no | One of: `high_mortality`, `low_production`, `low_feed`, `water_quality`, `custom` |
 | message | text | no | Human-readable alert description |
 | severity | text | no | One of: `info`, `warning`, `critical` |
 | status | text | no | One of: `active`, `dismissed`. Default `active` |
@@ -193,12 +257,15 @@ Derived notification surfaced by the system when metrics indicate an issue.
 
 ## Key Relationships
 - Tenant → has many Farms, Users.
-- Farm → belongs to Tenant. Has many FlockBatches, Expenses, Sales, Alerts.
-- FlockBatch → belongs to Farm. Has many DailyRecords, CageUnits. Optionally referenced by Expenses, Sales, Alerts.
+- Farm → belongs to Tenant. Has many FlockBatches (poultry), PondBatches (fish), Expenses, Sales, Alerts, FarmMembers.
+- FarmMember → links User ↔ Farm with a farm-scoped role. Workers require an entry; owners/managers do not.
+- FlockBatch → belongs to Farm (poultry). Has many DailyRecords, CageUnits. Optionally referenced by Expenses, Sales, Alerts.
 - CageUnit → belongs to FlockBatch. Has many CageProductions.
-- CageProduction → belongs to CageUnit. Mortality on creation decrements CageUnit.birdCount via transaction.
+- CageProduction → belongs to CageUnit. Mortality decrements CageUnit.birdCount via transaction.
 - DailyRecord → belongs to FlockBatch. Optionally references recording User.
-- User → belongs to Tenant. Referenced by DailyRecord (recorded_by) and Alert (dismissed_by).
+- PondBatch → belongs to Farm (fish). Has many PondRecords. Optionally referenced by Expenses, Sales, Alerts.
+- PondRecord → belongs to PondBatch. Mortality + harvestCount decrements PondBatch.currentCount via transaction.
+- User → belongs to Tenant. Referenced by DailyRecord, PondRecord (recorded_by) and Alert (dismissed_by). Has many FarmMemberships.
 
 ## Indexes (recommended)
 - `daily_record(flock_batch_id, record_date)` — unique, primary lookup.

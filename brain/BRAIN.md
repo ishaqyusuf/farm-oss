@@ -25,6 +25,10 @@ This directory is the shared source of truth for product, system, engineering, a
 - `templates/`: reusable documentation templates.
 
 ## Current State
-- Repository is newly initialized.
-- Initial product direction is a farm operations tracker with poultry as the MVP entry point.
-- Core value proposition is fast daily record capture and profit visibility.
+- Multi-tenant SaaS platform supporting poultry and fish farm operations.
+- Poultry domain fully implemented: FlockBatch, CageUnit, CageProduction, DailyRecord, Expense, Sale, Alert.
+- Fish pond domain implemented: PondBatch, PondRecord (feed, water quality, mortality, harvest tracking).
+- RBAC implemented: owner > manager > worker. Worker role is farm-scoped via FarmMember table.
+- Mobile app (Expo) covers poultry workflows: daily records, expenses, sales, cage management.
+- Fish pond mobile UI and dashboard integration are upcoming.
+- All development uses `CLAUDE.md` brain-first rules for AI sessions.
