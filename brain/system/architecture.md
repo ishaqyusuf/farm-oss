@@ -25,6 +25,16 @@ This file documents the current and planned architectural approach for the produ
 - Farm-level operational records as the main domain layer.
 - Batch-oriented animal grouping for poultry and fish.
 - Event-style daily records feeding dashboards and analytics.
+- Farm type (`farmType` on Farm) drives which domain models apply per farm.
+- Workers are farm-scoped via FarmMember; owners and managers have tenant-wide access.
+
+## Farm Type Extensibility
+The system is designed to support multiple farm types without shared-model changes:
+- `poultry` → FlockBatch, CageUnit, CageProduction, DailyRecord
+- `fish` → PondBatch, PondRecord
+- Future types add their own domain models alongside existing ones.
+- Shared models (Farm, Expense, Sale, Alert) reference the relevant batch type via optional FKs.
+- New farm types: add `farmType` value, new domain tables, optional FK on Expense/Sale/Alert.
 
 ## Architectural Principles
 - Simplicity first for end-user workflows.

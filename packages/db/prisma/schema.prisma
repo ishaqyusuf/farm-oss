@@ -28,6 +28,8 @@ model Tenant {
 
 // ---------------------------------------------------------------------------
 // User – app user, belongs to one tenant
+// Tenant-level roles: owner | manager
+// Farm-scoped access: worker (via FarmMember)
 // ---------------------------------------------------------------------------
 
 model User {
@@ -36,26 +38,52 @@ model User {
   userId       String   @unique @map("user_id") @db.Char(6) // unique 6-digit login identifier
   email        String   @unique
   name         String
-  role         String // owner | manager | staff
+  role         String // owner | manager | worker
   passwordHash String   @map("password_hash")
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
   tenant          Tenant        @relation(fields: [tenantId], references: [id])
   dailyRecords    DailyRecord[] @relation("RecordedByUser")
+  pondRecords     PondRecord[]  @relation("PondRecordedByUser")
   dismissedAlerts Alert[]       @relation("DismissedByUser")
+  farmMemberships FarmMember[]
 
   @@map("user")
 }
 
 // ---------------------------------------------------------------------------
+// FarmMember – farm-scoped role assignment (worker role is farm-based)
+// Owners and managers have tenant-wide access (no FarmMember entry needed).
+// Workers must be explicitly assigned to each farm they can access.
+// ---------------------------------------------------------------------------
+
+model FarmMember {
+  id        String   @id @default(uuid()) @db.Uuid
+  farmId    String   @map("farm_id") @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  role      String   @default("worker") // worker
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  farm Farm @relation(fields: [farmId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([farmId, userId], map: "farm_member_farm_user_unique")
+  @@index([userId], map: "farm_member_user_id_idx")
+  @@map("farm_member")
+}
+
+// ---------------------------------------------------------------------------
 // Farm – operational unit under a tenant
+// farmType drives which domain models apply: poultry | fish (extendable)
 // ---------------------------------------------------------------------------
 
 model Farm {
   id        String    @id @default(uuid()) @db.Uuid
   tenantId  String    @map("tenant_id") @db.Uuid
   name      String
+  farmType  String    @default("poultry") @map("farm_type") // poultry | fish
   location  String?
   deletedAt DateTime? @map("deleted_at")
   createdAt DateTime  @default(now()) @map("created_at")
@@ -63,15 +91,17 @@ model Farm {
 
   tenant       Tenant       @relation(fields: [tenantId], references: [id])
   flockBatches FlockBatch[]
+  pondBatches  PondBatch[]
   expenses     Expense[]
   sales        Sale[]
   alerts       Alert[]
+  members      FarmMember[]
 
   @@map("farm")
 }
 
 // ---------------------------------------------------------------------------
-// FlockBatch – a group of birds managed together
+// FlockBatch – a group of birds managed together (poultry)
 // ---------------------------------------------------------------------------
 
 model FlockBatch {
@@ -146,7 +176,7 @@ model CageProduction {
 }
 
 // ---------------------------------------------------------------------------
-// DailyRecord – one record per batch per date (core operational input)
+// DailyRecord – one record per batch per date (core poultry operational input)
 // ---------------------------------------------------------------------------
 
 model DailyRecord {
@@ -170,13 +200,87 @@ model DailyRecord {
 }
 
 // ---------------------------------------------------------------------------
-// Expense – cost event tied to a farm or a specific batch
+// PondBatch – a fish stocking cohort managed together (fish pond)
+// ---------------------------------------------------------------------------
+
+model PondBatch {
+  id            String    @id @default(uuid()) @db.Uuid
+  farmId        String    @map("farm_id") @db.Uuid
+  name          String
+  species       String // tilapia | catfish | salmon | carp | other
+  stockingCount Int       @map("stocking_count") // fish placed at start
+  currentCount  Int       @map("current_count") // running count after mortality/harvest
+  avgWeightG    Int?      @map("avg_weight_g") // average weight per fish at stocking (grams)
+  waterType     String?   @map("water_type") // fresh | brackish | salt
+  startDate     DateTime  @map("start_date") @db.Date
+  endDate       DateTime? @map("end_date") @db.Date
+  status        String    @default("active") // active | harvested | closed
+  deletedAt     DateTime? @map("deleted_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  farm        Farm         @relation(fields: [farmId], references: [id])
+  pondRecords PondRecord[]
+  expenses    Expense[]
+  sales       Sale[]
+  alerts      Alert[]
+
+  @@index([farmId, status], map: "pond_batch_farm_id_status_idx")
+  @@map("pond_batch")
+}
+
+// ---------------------------------------------------------------------------
+// PondRecord – daily operational record per pond batch (fish pond)
+// Tracks feed, water quality, mortality, and partial harvests.
+// ---------------------------------------------------------------------------
+
+model PondRecord {
+  id String @id @default(uuid()) @db.Uuid
+
+  pondBatchId String   @map("pond_batch_id") @db.Uuid
+  recordDate  DateTime @map("record_date") @db.Date
+
+  // Feed
+  feedGrams Int?    @map("feed_grams") // total feed in grams (display as kg)
+  feedType  String? @map("feed_type") // pellets | live | mixed | other
+
+  // Water quality
+  phLevel            Float?  @map("ph_level") // typical range 6.0–9.0
+  dissolvedOxygenMgl Float?  @map("dissolved_oxygen_mgl") // mg/L, healthy >5
+  waterTempC         Float?  @map("water_temp_c") // Celsius
+  waterChangePercent Int?    @map("water_change_percent") // % of pond water replaced
+
+  // Mortality
+  mortality      Int     @default(0)
+  mortalityNotes String? @map("mortality_notes")
+
+  // Partial harvest (thinning or staged sale)
+  harvestCount   Int  @default(0) @map("harvest_count") // fish removed
+  harvestWeightG Int? @map("harvest_weight_g") // total harvest weight in grams
+
+  notes      String?
+  recordedBy String?  @map("recorded_by") @db.Uuid
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  pondBatch PondBatch @relation(fields: [pondBatchId], references: [id])
+  recorder  User?     @relation("PondRecordedByUser", fields: [recordedBy], references: [id])
+
+  @@unique([pondBatchId, recordDate], map: "pond_record_batch_date_unique")
+  @@index([pondBatchId], map: "pond_record_pond_batch_id_idx")
+  @@map("pond_record")
+}
+
+// ---------------------------------------------------------------------------
+// Expense – cost event tied to a farm, optionally to a batch
+// Supports both poultry (flockBatchId) and fish (pondBatchId) batch references.
 // ---------------------------------------------------------------------------
 
 model Expense {
   id           String    @id @default(uuid()) @db.Uuid
   farmId       String    @map("farm_id") @db.Uuid
   flockBatchId String?   @map("flock_batch_id") @db.Uuid
+  pondBatchId  String?   @map("pond_batch_id") @db.Uuid
   category     String // feed | medication | labor | equipment | other
   description  String?
   amount       Int // minor currency units (e.g. kobo)
@@ -186,22 +290,24 @@ model Expense {
   createdAt    DateTime  @default(now()) @map("created_at")
   updatedAt    DateTime  @updatedAt @map("updated_at")
 
-  farm       Farm        @relation(fields: [farmId], references: [id])
+  farm       Farm       @relation(fields: [farmId], references: [id])
   flockBatch FlockBatch? @relation(fields: [flockBatchId], references: [id])
+  pondBatch  PondBatch?  @relation(fields: [pondBatchId], references: [id])
 
   @@index([farmId, expenseDate], map: "expense_farm_id_expense_date_idx")
   @@map("expense")
 }
 
 // ---------------------------------------------------------------------------
-// Sale – revenue event (eggs sold, birds sold, other)
+// Sale – revenue event. Supports poultry and fish batch references.
 // ---------------------------------------------------------------------------
 
 model Sale {
   id           String    @id @default(uuid()) @db.Uuid
   farmId       String    @map("farm_id") @db.Uuid
   flockBatchId String?   @map("flock_batch_id") @db.Uuid
-  saleType     String    @map("sale_type") // eggs | birds | other
+  pondBatchId  String?   @map("pond_batch_id") @db.Uuid
+  saleType     String    @map("sale_type") // eggs | birds | fish | other
   description  String?
   quantity     Int?
   unitPrice    Int?      @map("unit_price") // minor currency units
@@ -214,6 +320,7 @@ model Sale {
 
   farm       Farm        @relation(fields: [farmId], references: [id])
   flockBatch FlockBatch? @relation(fields: [flockBatchId], references: [id])
+  pondBatch  PondBatch?  @relation(fields: [pondBatchId], references: [id])
 
   @@index([farmId, saleDate], map: "sale_farm_id_sale_date_idx")
   @@map("sale")
@@ -221,13 +328,15 @@ model Sale {
 
 // ---------------------------------------------------------------------------
 // Alert – derived notification surfaced by the system
+// Supports both poultry and fish batch references.
 // ---------------------------------------------------------------------------
 
 model Alert {
   id           String    @id @default(uuid()) @db.Uuid
   farmId       String    @map("farm_id") @db.Uuid
   flockBatchId String?   @map("flock_batch_id") @db.Uuid
-  alertType    String    @map("alert_type") // high_mortality | low_production | low_feed | custom
+  pondBatchId  String?   @map("pond_batch_id") @db.Uuid
+  alertType    String    @map("alert_type") // high_mortality | low_production | low_feed | water_quality | custom
   message      String
   severity     String // info | warning | critical
   status       String    @default("active") // active | dismissed
@@ -239,6 +348,7 @@ model Alert {
 
   farm       Farm        @relation(fields: [farmId], references: [id])
   flockBatch FlockBatch? @relation(fields: [flockBatchId], references: [id])
+  pondBatch  PondBatch?  @relation(fields: [pondBatchId], references: [id])
   dismisser  User?       @relation("DismissedByUser", fields: [dismissedBy], references: [id])
 
   @@index([farmId, status], map: "alert_farm_id_status_idx")

@@ -1,5 +1,7 @@
+import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import {
+  assertFarmAccess,
   createTRPCRouter,
   managerProcedure,
   protectedProcedure,
@@ -7,7 +9,7 @@ import {
 } from "../../init";
 
 export const dailyRecordRouter = createTRPCRouter({
-  list: publicProcedure
+  list: protectedProcedure
     .input(
       z.object({
         flockBatchId: z.string().uuid(),
@@ -15,6 +17,14 @@ export const dailyRecordRouter = createTRPCRouter({
       }),
     )
     .query(async ({ ctx, input }) => {
+      const batch = await ctx.db.flockBatch.findFirst({
+        where: { id: input.flockBatchId, deletedAt: null },
+        select: { farmId: true },
+      });
+      if (batch) {
+        await assertFarmAccess(ctx, batch.farmId);
+      }
+
       const records = await ctx.db.dailyRecord.findMany({
         where: { flockBatchId: input.flockBatchId },
         orderBy: { recordDate: "desc" },
@@ -24,20 +34,20 @@ export const dailyRecordRouter = createTRPCRouter({
       return records;
     }),
 
-  get: publicProcedure
-    .input(
-      z.object({
-        id: z.string().uuid(),
-      }),
-    )
+  get: protectedProcedure
+    .input(z.object({ id: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
       const record = await ctx.db.dailyRecord.findUnique({
         where: { id: input.id },
         include: {
-          flockBatch: { select: { id: true, name: true, birdType: true } },
+          flockBatch: { select: { id: true, name: true, birdType: true, farmId: true } },
           recorder: { select: { id: true, name: true } },
         },
       });
+
+      if (record) {
+        await assertFarmAccess(ctx, record.flockBatch.farmId);
+      }
 
       return record;
     }),
@@ -56,6 +66,15 @@ export const dailyRecordRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      const batch = await ctx.db.flockBatch.findFirst({
+        where: { id: input.flockBatchId, deletedAt: null },
+        select: { farmId: true },
+      });
+      if (!batch) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Flock batch not found" });
+      }
+      await assertFarmAccess(ctx, batch.farmId);
+
       const record = await ctx.db.$transaction(async (tx) => {
         const created = await tx.dailyRecord.create({
           data: {
@@ -66,7 +85,7 @@ export const dailyRecordRouter = createTRPCRouter({
             mortality: input.mortality,
             mortalityNotes: input.mortalityNotes,
             notes: input.notes,
-            recordedBy: input.recordedBy,
+            recordedBy: input.recordedBy ?? ctx.user.id,
           },
         });
 
@@ -97,11 +116,9 @@ export const dailyRecordRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const { id, ...data } = input;
 
-      const existing = await ctx.db.dailyRecord.findUnique({
-        where: { id },
-      });
+      const existing = await ctx.db.dailyRecord.findUnique({ where: { id } });
       if (!existing) {
-        throw new Error("Record not found");
+        throw new TRPCError({ code: "NOT_FOUND", message: "Record not found" });
       }
 
       const record = await ctx.db.$transaction(async (tx) => {
@@ -111,29 +128,20 @@ export const dailyRecordRouter = createTRPCRouter({
             ...(data.eggCount !== undefined && { eggCount: data.eggCount }),
             ...(data.feedGrams !== undefined && { feedGrams: data.feedGrams }),
             ...(data.mortality !== undefined && { mortality: data.mortality }),
-            ...(data.mortalityNotes !== undefined && {
-              mortalityNotes: data.mortalityNotes,
-            }),
+            ...(data.mortalityNotes !== undefined && { mortalityNotes: data.mortalityNotes }),
             ...(data.notes !== undefined && { notes: data.notes }),
           },
         });
 
-        if (
-          data.mortality !== undefined &&
-          data.mortality !== existing.mortality
-        ) {
+        if (data.mortality !== undefined && data.mortality !== existing.mortality) {
           const diff = data.mortality - existing.mortality;
-          if (diff > 0) {
-            await tx.flockBatch.update({
-              where: { id: existing.flockBatchId },
-              data: { currentCount: { decrement: diff } },
-            });
-          } else {
-            await tx.flockBatch.update({
-              where: { id: existing.flockBatchId },
-              data: { currentCount: { increment: Math.abs(diff) } },
-            });
-          }
+          await tx.flockBatch.update({
+            where: { id: existing.flockBatchId },
+            data: {
+              currentCount:
+                diff > 0 ? { decrement: diff } : { increment: Math.abs(diff) },
+            },
+          });
         }
 
         return updated;
@@ -146,10 +154,7 @@ export const dailyRecordRouter = createTRPCRouter({
     .input(
       z.object({
         farmId: z.string().uuid(),
-        date: z
-          .string()
-          .regex(/^\d{4}-\d{2}-\d{2}$/)
-          .optional(),
+        date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
       }),
     )
     .query(async ({ ctx, input }) => {

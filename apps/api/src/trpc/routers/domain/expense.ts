@@ -1,21 +1,30 @@
 import { z } from "zod";
-import { createTRPCRouter, managerProcedure, publicProcedure } from "../../init";
+import {
+  assertFarmAccess,
+  createTRPCRouter,
+  managerProcedure,
+  protectedProcedure,
+} from "../../init";
 
 export const expenseRouter = createTRPCRouter({
-  list: publicProcedure
+  list: protectedProcedure
     .input(
       z.object({
         farmId: z.string().uuid(),
         flockBatchId: z.string().uuid().optional(),
+        pondBatchId: z.string().uuid().optional(),
         limit: z.number().int().min(1).max(100).default(30),
       }),
     )
     .query(async ({ ctx, input }) => {
+      await assertFarmAccess(ctx, input.farmId);
+
       const expenses = await ctx.db.expense.findMany({
         where: {
           farmId: input.farmId,
           deletedAt: null,
           ...(input.flockBatchId && { flockBatchId: input.flockBatchId }),
+          ...(input.pondBatchId && { pondBatchId: input.pondBatchId }),
         },
         orderBy: { expenseDate: "desc" },
         take: input.limit,
@@ -29,6 +38,7 @@ export const expenseRouter = createTRPCRouter({
       z.object({
         farmId: z.string().uuid(),
         flockBatchId: z.string().uuid().optional(),
+        pondBatchId: z.string().uuid().optional(),
         category: z.enum(["feed", "medication", "labor", "equipment", "other"]),
         description: z.string().optional(),
         amount: z.number().int().positive(),
@@ -41,6 +51,7 @@ export const expenseRouter = createTRPCRouter({
         data: {
           farmId: input.farmId,
           flockBatchId: input.flockBatchId,
+          pondBatchId: input.pondBatchId,
           category: input.category,
           description: input.description,
           amount: input.amount,

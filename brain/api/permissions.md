@@ -8,18 +8,30 @@ This file records access rules for API operations.
 - Keep role names consistent with the product.
 - Note tenant boundaries explicitly.
 
-## Initial Roles
-- Owner
-- Manager
-- Staff
+## Roles
 
-## Early Rules
-- Users should only access farms within their tenant.
-- Owners can manage billing, users, and all farm data.
-- Managers can manage operations and view analytics.
-- Staff can enter daily records and view assigned operational data.
+### Tenant-level roles (User.role)
+- **owner** – full access to all farms, can manage users and billing
+- **manager** – operational access to all farms, no user/billing management
+- **worker** – farm-scoped access only (replaces `staff`; previously tenant-wide, now farm-based)
 
-## To Define
-- Role assignment flow
-- Fine-grained edit restrictions
-- Cross-farm visibility rules for managers and staff
+### Farm-level membership (FarmMember table)
+Workers must be explicitly assigned to each farm they can access via the `farm_member` table.
+Owners and managers have implicit tenant-wide access and do not require FarmMember entries.
+
+## Access Rules
+
+| Operation | owner | manager | worker |
+|-----------|-------|---------|--------|
+| List/get farm data | ✅ all farms | ✅ all farms | ✅ assigned farms only |
+| Create/update records | ✅ | ✅ | ✅ |
+| Create/update batches, expenses, sales | ✅ | ✅ | ❌ |
+| Delete resources | ✅ | ❌ | ❌ |
+| Assign/remove farm members | ✅ | assign only | ❌ |
+| Create/update farms | ✅ | ✅ | ❌ |
+| Delete farms | ✅ | ❌ | ❌ |
+
+## Implementation
+- tRPC procedures: `publicProcedure`, `protectedProcedure`, `managerProcedure`, `ownerProcedure`
+- Farm-scoped access: `assertFarmAccess(ctx, farmId)` helper in `apps/api/src/trpc/init.ts`
+- Workers are filtered to assigned farms in list queries via FarmMember join

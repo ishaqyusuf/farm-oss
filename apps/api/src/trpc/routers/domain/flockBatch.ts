@@ -1,8 +1,13 @@
 import { z } from "zod";
-import { createTRPCRouter, managerProcedure, publicProcedure } from "../../init";
+import {
+  assertFarmAccess,
+  createTRPCRouter,
+  managerProcedure,
+  protectedProcedure,
+} from "../../init";
 
 export const flockBatchRouter = createTRPCRouter({
-  list: publicProcedure
+  list: protectedProcedure
     .input(
       z.object({
         farmId: z.string().uuid(),
@@ -10,6 +15,8 @@ export const flockBatchRouter = createTRPCRouter({
       }),
     )
     .query(async ({ ctx, input }) => {
+      await assertFarmAccess(ctx, input.farmId);
+
       const batches = await ctx.db.flockBatch.findMany({
         where: {
           farmId: input.farmId,
@@ -22,12 +29,8 @@ export const flockBatchRouter = createTRPCRouter({
       return batches;
     }),
 
-  get: publicProcedure
-    .input(
-      z.object({
-        id: z.string().uuid(),
-      }),
-    )
+  get: protectedProcedure
+    .input(z.object({ id: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
       const batch = await ctx.db.flockBatch.findFirst({
         where: { id: input.id, deletedAt: null },
@@ -35,6 +38,10 @@ export const flockBatchRouter = createTRPCRouter({
           farm: { select: { id: true, name: true } },
         },
       });
+
+      if (batch) {
+        await assertFarmAccess(ctx, batch.farmId);
+      }
 
       return batch;
     }),

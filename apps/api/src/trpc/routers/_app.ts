@@ -5,7 +5,10 @@ import { cageUnitRouter } from "./domain/cageUnit";
 import { dailyRecordRouter } from "./domain/dailyRecord";
 import { expenseRouter } from "./domain/expense";
 import { farmRouter } from "./domain/farm";
+import { farmMemberRouter } from "./domain/farmMember";
 import { flockBatchRouter } from "./domain/flockBatch";
+import { pondBatchRouter } from "./domain/pondBatch";
+import { pondRecordRouter } from "./domain/pondRecord";
 import { saleRouter } from "./domain/sale";
 
 export const appRouter = createTRPCRouter({
@@ -44,19 +47,29 @@ export const appRouter = createTRPCRouter({
         };
       }),
   }),
-  cageProduction: cageProductionRouter,
-  cageUnit: cageUnitRouter,
-  dailyRecord: dailyRecordRouter,
-  expense: expenseRouter,
+
+  // ── Shared / cross-farm-type ─────────────────────────────────────────────
   farm: farmRouter,
+  farmMember: farmMemberRouter,
+  expense: expenseRouter,
+  sale: saleRouter,
+
+  // ── Poultry domain ───────────────────────────────────────────────────────
   flockBatch: flockBatchRouter,
+  dailyRecord: dailyRecordRouter,
+  cageUnit: cageUnitRouter,
+  cageProduction: cageProductionRouter,
+
+  // ── Fish pond domain ─────────────────────────────────────────────────────
+  pondBatch: pondBatchRouter,
+  pondRecord: pondRecordRouter,
+
   health: publicProcedure.query(() => {
     return {
       status: "ok",
       timestamp: new Date().toISOString(),
     };
   }),
-  sale: saleRouter,
 });
 
 export type AppRouter = typeof appRouter;
