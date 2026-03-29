@@ -25,7 +25,7 @@ This file connects execution tasks to the broader roadmap.
 - ✅ Scalable farm type architecture (farmType on Farm, extensible domain model pattern).
 
 ## Longer-Term Milestones
-- Real authentication (replace demo token with JWT/session).
+- ✅ Real authentication (JWT + argon2id password hashing).
 - Mobile UI for fish pond record entry.
 - Dashboard support for fish pond metrics.
 - Add AI insights and forecasting.

@@ -6,6 +6,7 @@ import { createTRPCContext } from "@trpc/tanstack-react-query";
 import { useState } from "react";
 import superjson from "superjson";
 import { getBaseUrl } from "@/lib/base-url";
+import { getSession } from "@/lib/session-store";
 import { makeQueryClient } from "./query-client";
 
 export const { TRPCProvider, useTRPC } = createTRPCContext<AppRouter>();
@@ -37,6 +38,12 @@ export function TRPCReactProvider({
         httpBatchLink({
           url: `${getBaseUrl()}/api/trpc`,
           transformer: superjson,
+          headers: async () => {
+            const session = await getSession();
+            return session?.token
+              ? { Authorization: `Bearer ${session.token}` }
+              : {};
+          },
         }),
       ],
     }),

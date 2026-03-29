@@ -17,20 +17,53 @@ async function main() {
   });
   console.log(`  Tenant: ${tenant.name} (${tenant.id})`);
 
-  // ── User ───────────────────────────────────────────────────────────
-  const user = await prisma.user.upsert({
-    where: { email: "manager@farmoss.app" },
+  // ── Users ──────────────────────────────────────────────────────────
+  // Passwords hashed with argon2id via Bun.password
+  const ownerHash = await Bun.password.hash("demo1234", { algorithm: "argon2id" });
+  const managerHash = await Bun.password.hash("demo1234", { algorithm: "argon2id" });
+  const workerHash = await Bun.password.hash("demo1234", { algorithm: "argon2id" });
+
+  const owner = await prisma.user.upsert({
+    where: { email: "owner@farmoss.app" },
     update: {},
     create: {
       tenantId: tenant.id,
       userId: "100001",
-      email: "manager@farmoss.app",
-      name: "Farm Manager",
+      email: "owner@farmoss.app",
+      name: "Farm Owner",
       role: "owner",
-      passwordHash: "demo-hash-not-for-production",
+      passwordHash: ownerHash,
     },
   });
-  console.log(`  User: ${user.name} (${user.email}, ID: ${user.userId})`);
+  console.log(`  User (owner): ${owner.name} (${owner.email}, ID: ${owner.userId})`);
+
+  const manager = await prisma.user.upsert({
+    where: { email: "manager@farmoss.app" },
+    update: {},
+    create: {
+      tenantId: tenant.id,
+      userId: "100002",
+      email: "manager@farmoss.app",
+      name: "Farm Manager",
+      role: "manager",
+      passwordHash: managerHash,
+    },
+  });
+  console.log(`  User (manager): ${manager.name} (${manager.email}, ID: ${manager.userId})`);
+
+  const worker = await prisma.user.upsert({
+    where: { email: "worker@farmoss.app" },
+    update: {},
+    create: {
+      tenantId: tenant.id,
+      userId: "100003",
+      email: "worker@farmoss.app",
+      name: "Farm Worker",
+      role: "worker",
+      passwordHash: workerHash,
+    },
+  });
+  console.log(`  User (worker): ${worker.name} (${worker.email}, ID: ${worker.userId})`);
 
   // ── Farm ───────────────────────────────────────────────────────────
   let farm = await prisma.farm.findFirst({
@@ -41,11 +74,20 @@ async function main() {
       data: {
         tenantId: tenant.id,
         name: "Green Pastures Farm",
+        farmType: "poultry",
         location: "Ibadan, Nigeria",
       },
     });
   }
   console.log(`  Farm: ${farm.name} (${farm.id})`);
+
+  // Assign worker to the farm
+  await prisma.farmMember.upsert({
+    where: { farmId_userId: { farmId: farm.id, userId: worker.id } },
+    update: {},
+    create: { farmId: farm.id, userId: worker.id, role: "worker" },
+  });
+  console.log(`  FarmMember: ${worker.name} assigned to ${farm.name}`);
 
   // ── Flock Batches ──────────────────────────────────────────────────
   const layerBatch = await prisma.flockBatch.create({
@@ -89,7 +131,7 @@ async function main() {
         feedGrams: 120000 + Math.floor(Math.random() * 10000),
         mortality: i === 3 ? 2 : i === 5 ? 1 : 0,
         notes: i === 0 ? "Good production day" : undefined,
-        recordedBy: user.id,
+        recordedBy: worker.id,
       },
     });
   }
@@ -107,7 +149,7 @@ async function main() {
         recordDate: new Date(dateStr),
         feedGrams: 75000 + Math.floor(Math.random() * 5000),
         mortality: i === 1 ? 1 : 0,
-        recordedBy: user.id,
+        recordedBy: worker.id,
       },
     });
   }
@@ -162,7 +204,7 @@ async function main() {
       data: {
         flockBatchId: layerBatch.id,
         label: cageLabel,
-        birdCount: 5 + Math.floor(Math.random() * 3), // 5-7 birds per cage
+        birdCount: 5 + Math.floor(Math.random() * 3),
         startDate: new Date("2026-01-01"),
         status: "active",
         notes:
@@ -190,7 +232,7 @@ async function main() {
           cageUnitId: cage.id,
           recordDate: new Date(dateStr),
           eggCount: Math.max(0, cage.birdCount - Math.floor(Math.random() * 2)),
-          feedGrams: 300 + Math.floor(Math.random() * 200), // 300-500g per cage
+          feedGrams: 300 + Math.floor(Math.random() * 200),
           mortality: i === 2 && cage.label === "B1" ? 1 : 0,
           notes:
             i === 0 && cage.label === "A1"
@@ -206,6 +248,10 @@ async function main() {
   );
 
   console.log("\nSeed complete!");
+  console.log("\nDev credentials (all passwords: demo1234):");
+  console.log(`  Owner:   userId=100001  email=owner@farmoss.app`);
+  console.log(`  Manager: userId=100002  email=manager@farmoss.app`);
+  console.log(`  Worker:  userId=100003  email=worker@farmoss.app`);
 }
 
 main()
