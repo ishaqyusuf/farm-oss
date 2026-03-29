@@ -26,6 +26,7 @@ This file connects execution tasks to the broader roadmap.
 
 ## Longer-Term Milestones
 - ✅ Real authentication (JWT + argon2id password hashing).
+- ✅ Dynamic farm/batch selector in mobile app (FarmProvider context, replaces placeholder IDs).
 - Mobile UI for fish pond record entry.
 - Dashboard support for fish pond metrics.
 - Add AI insights and forecasting.

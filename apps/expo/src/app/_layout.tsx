@@ -5,6 +5,7 @@ import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { AuthProvider, useAuth } from "@/providers/auth-provider";
+import { FarmProvider } from "@/providers/farm-provider";
 import { SyncProvider } from "@/providers/sync-provider";
 import { ThemeProvider, useTheme } from "@/providers/theme-provider";
 import { TRPCReactProvider } from "@/trpc/client";
@@ -55,11 +56,13 @@ export default function RootLayout() {
       <ThemeProvider>
         <TRPCReactProvider>
           <AuthProvider>
-            <SyncProvider>
-              <AuthGate>
-                <InnerLayout />
-              </AuthGate>
-            </SyncProvider>
+            <FarmProvider>
+              <SyncProvider>
+                <AuthGate>
+                  <InnerLayout />
+                </AuthGate>
+              </SyncProvider>
+            </FarmProvider>
           </AuthProvider>
         </TRPCReactProvider>
       </ThemeProvider>

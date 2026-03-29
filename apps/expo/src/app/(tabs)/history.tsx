@@ -2,18 +2,20 @@ import { useQuery } from "@tanstack/react-query";
 import { View } from "react-native";
 import { RoleGuard, SCREEN_ROLES } from "@/components/RoleGuard";
 import { Card, Screen, Text } from "@/components/ui";
-import { PLACEHOLDER_FLOCK_BATCH_ID } from "@/lib/constants";
+import { useFarm } from "@/providers/farm-provider";
 import { useTRPC } from "@/trpc/client";
 
 export default function HistoryScreen() {
   const trpc = useTRPC();
+  const { selectedBatch } = useFarm();
 
-  const records = useQuery(
-    trpc.dailyRecord.list.queryOptions({
-      flockBatchId: PLACEHOLDER_FLOCK_BATCH_ID,
+  const records = useQuery({
+    ...trpc.dailyRecord.list.queryOptions({
+      flockBatchId: selectedBatch?.id ?? "",
       limit: 20,
     }),
-  );
+    enabled: !!selectedBatch,
+  });
 
   const accentClass = "text-light-accent dark:text-dark-accent";
   const subtextClass = "text-light-text-tertiary dark:text-dark-text-tertiary";

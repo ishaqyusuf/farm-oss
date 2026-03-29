@@ -45,15 +45,15 @@ export function RoleGuard({ allowed, children, fallback }: Props) {
 
 /**
  * Maps tab screens to the minimum roles required.
- * "staff" can record data and view history.
+ * "worker" can record data and view history.
  * "manager" can also manage expenses and sales.
  * "owner" has full access.
  */
 export const SCREEN_ROLES: Record<string, FarmRole[]> = {
-  index: ["owner", "manager", "staff"],
-  record: ["owner", "manager", "staff"],
-  cages: ["owner", "manager", "staff"],
-  history: ["owner", "manager", "staff"],
+  index: ["owner", "manager", "worker"],
+  record: ["owner", "manager", "worker"],
+  cages: ["owner", "manager", "worker"],
+  history: ["owner", "manager", "worker"],
   expenses: ["owner", "manager"],
   sales: ["owner", "manager"],
 };

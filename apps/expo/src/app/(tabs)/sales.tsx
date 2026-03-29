@@ -3,10 +3,10 @@ import { useState } from "react";
 import { ActivityIndicator, Alert, Pressable, View } from "react-native";
 import { RoleGuard, SCREEN_ROLES } from "@/components/RoleGuard";
 import { Button, Card, Input, Screen, Text } from "@/components/ui";
-import { PLACEHOLDER_FARM_ID } from "@/lib/constants";
 import { formatNaira, toKobo } from "@/lib/currency";
 import { enqueue } from "@/lib/offline-queue";
 import { useAuth } from "@/providers/auth-provider";
+import { useFarm } from "@/providers/farm-provider";
 import { useSync } from "@/providers/sync-provider";
 import { useTheme } from "@/providers/theme-provider";
 import { useTRPC } from "@/trpc/client";
@@ -21,6 +21,7 @@ function todayISO() {
 
 export default function SalesScreen() {
   const { session } = useAuth();
+  const { selectedFarm } = useFarm();
   const { isDark } = useTheme();
   const { isOnline } = useSync();
   const trpc = useTRPC();
@@ -38,7 +39,7 @@ export default function SalesScreen() {
 
   // ── List query ──────────────────────────────────────────────────────
   const listKey = trpc.sale.list.queryOptions({
-    farmId: PLACEHOLDER_FARM_ID,
+    farmId: selectedFarm?.id ?? "",
     limit: 20,
   });
 
@@ -77,7 +78,7 @@ export default function SalesScreen() {
 
   function buildPayload() {
     return {
-      farmId: PLACEHOLDER_FARM_ID,
+      farmId: selectedFarm?.id ?? "",
       saleType,
       description: description || undefined,
       quantity: quantity ? Number(quantity) : undefined,
@@ -90,6 +91,10 @@ export default function SalesScreen() {
   async function handleSave() {
     if (!session) {
       Alert.alert("Sign in required", "Please sign in first.");
+      return;
+    }
+    if (!selectedFarm) {
+      Alert.alert("No farm selected", "Please select a farm first.");
       return;
     }
     const total = resolvedTotal();

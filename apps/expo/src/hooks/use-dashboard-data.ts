@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { PLACEHOLDER_FARM_ID, PLACEHOLDER_FLOCK_BATCH_ID } from "@/lib/constants";
+import { useFarm } from "@/providers/farm-provider";
 import { useTRPC } from "@/trpc/client";
 
 /**
@@ -13,27 +13,31 @@ import { useTRPC } from "@/trpc/client";
  */
 export function useDashboardData() {
   const trpc = useTRPC();
+  const { selectedFarm, selectedBatch } = useFarm();
 
   const health = useQuery(trpc.health.queryOptions());
 
-  const summary = useQuery(
-    trpc.dailyRecord.summary.queryOptions({
-      farmId: PLACEHOLDER_FARM_ID,
+  const summary = useQuery({
+    ...trpc.dailyRecord.summary.queryOptions({
+      farmId: selectedFarm?.id ?? "",
     }),
-  );
+    enabled: !!selectedFarm,
+  });
 
-  const batches = useQuery(
-    trpc.flockBatch.list.queryOptions({
-      farmId: PLACEHOLDER_FARM_ID,
+  const batches = useQuery({
+    ...trpc.flockBatch.list.queryOptions({
+      farmId: selectedFarm?.id ?? "",
       status: "active",
     }),
-  );
+    enabled: !!selectedFarm,
+  });
 
-  const cageSummary = useQuery(
-    trpc.cageProduction.summary.queryOptions({
-      flockBatchId: PLACEHOLDER_FLOCK_BATCH_ID,
+  const cageSummary = useQuery({
+    ...trpc.cageProduction.summary.queryOptions({
+      flockBatchId: selectedBatch?.id ?? "",
     }),
-  );
+    enabled: !!selectedBatch,
+  });
 
   return {
     health,

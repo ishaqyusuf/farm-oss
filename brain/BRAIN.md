@@ -30,5 +30,6 @@ This directory is the shared source of truth for product, system, engineering, a
 - Fish pond domain implemented: PondBatch, PondRecord (feed, water quality, mortality, harvest tracking).
 - RBAC implemented: owner > manager > worker. Worker role is farm-scoped via FarmMember table.
 - Mobile app (Expo) covers poultry workflows: daily records, expenses, sales, cage management.
+- Mobile app uses FarmProvider context for dynamic farm/batch selection (no more hardcoded placeholder IDs).
 - Fish pond mobile UI and dashboard integration are upcoming.
 - All development uses `CLAUDE.md` brain-first rules for AI sessions.

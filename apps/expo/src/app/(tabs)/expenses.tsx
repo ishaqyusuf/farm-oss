@@ -3,10 +3,10 @@ import { useState } from "react";
 import { ActivityIndicator, Alert, Pressable, View } from "react-native";
 import { RoleGuard, SCREEN_ROLES } from "@/components/RoleGuard";
 import { Button, Card, Input, Screen, Text } from "@/components/ui";
-import { PLACEHOLDER_FARM_ID } from "@/lib/constants";
 import { formatNaira, toKobo } from "@/lib/currency";
 import { enqueue } from "@/lib/offline-queue";
 import { useAuth } from "@/providers/auth-provider";
+import { useFarm } from "@/providers/farm-provider";
 import { useSync } from "@/providers/sync-provider";
 import { useTheme } from "@/providers/theme-provider";
 import { useTRPC } from "@/trpc/client";
@@ -27,6 +27,7 @@ function todayISO() {
 
 export default function ExpensesScreen() {
   const { session } = useAuth();
+  const { selectedFarm } = useFarm();
   const { isDark } = useTheme();
   const { isOnline } = useSync();
   const trpc = useTRPC();
@@ -42,7 +43,7 @@ export default function ExpensesScreen() {
 
   // ── List query ──────────────────────────────────────────────────────
   const listKey = trpc.expense.list.queryOptions({
-    farmId: PLACEHOLDER_FARM_ID,
+    farmId: selectedFarm?.id ?? "",
     limit: 20,
   });
 
@@ -71,7 +72,7 @@ export default function ExpensesScreen() {
 
   function buildPayload() {
     return {
-      farmId: PLACEHOLDER_FARM_ID,
+      farmId: selectedFarm?.id ?? "",
       category,
       description: description || undefined,
       amount: toKobo(Number(amount)),
@@ -82,6 +83,10 @@ export default function ExpensesScreen() {
   async function handleSave() {
     if (!session) {
       Alert.alert("Sign in required", "Please sign in first.");
+      return;
+    }
+    if (!selectedFarm) {
+      Alert.alert("No farm selected", "Please select a farm first.");
       return;
     }
     if (!amount || Number(amount) <= 0) {

@@ -3,9 +3,9 @@ import { useState } from "react";
 import { ActivityIndicator, Alert, View } from "react-native";
 import { RoleGuard, SCREEN_ROLES } from "@/components/RoleGuard";
 import { Button, Card, Input, Screen, Text } from "@/components/ui";
-import { PLACEHOLDER_FLOCK_BATCH_ID } from "@/lib/constants";
 import { enqueue } from "@/lib/offline-queue";
 import { useAuth } from "@/providers/auth-provider";
+import { useFarm } from "@/providers/farm-provider";
 import { useSync } from "@/providers/sync-provider";
 import { useTheme } from "@/providers/theme-provider";
 import { useTRPC } from "@/trpc/client";
@@ -17,6 +17,7 @@ function todayISO() {
 
 export default function RecordScreen() {
   const { session } = useAuth();
+  const { selectedBatch } = useFarm();
   const { isDark } = useTheme();
   const { isOnline } = useSync();
   const trpc = useTRPC();
@@ -49,7 +50,7 @@ export default function RecordScreen() {
 
   function buildPayload() {
     return {
-      flockBatchId: PLACEHOLDER_FLOCK_BATCH_ID,
+      flockBatchId: selectedBatch?.id ?? "",
       recordDate: todayISO(),
       feedGrams: feedKg ? Math.round(Number(feedKg) * 1000) : undefined,
       eggCount: eggCount ? Number(eggCount) : undefined,
@@ -61,6 +62,10 @@ export default function RecordScreen() {
   async function handleSave() {
     if (!session) {
       Alert.alert("Sign in required", "Please sign in first.");
+      return;
+    }
+    if (!selectedBatch) {
+      Alert.alert("No batch selected", "Please select an active flock batch first.");
       return;
     }
 

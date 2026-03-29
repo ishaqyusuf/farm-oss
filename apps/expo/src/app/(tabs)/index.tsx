@@ -1,14 +1,27 @@
-import { View } from "react-native";
+import { useState } from "react";
+import { Modal, Pressable, View } from "react-native";
 import { RoleGuard, SCREEN_ROLES } from "@/components/RoleGuard";
 import { Button, Card, Screen, Text } from "@/components/ui";
 import { useDashboardData } from "@/hooks/use-dashboard-data";
 import { useAuth } from "@/providers/auth-provider";
+import { useFarm } from "@/providers/farm-provider";
 import { useSync } from "@/providers/sync-provider";
 
 export default function HomeScreen() {
   const { session, signOut } = useAuth();
   const { health, summary, batches, cageSummary } = useDashboardData();
   const { pendingCount, isOnline } = useSync();
+  const {
+    farms,
+    batches: allBatches,
+    selectedFarm,
+    selectedBatch,
+    setSelectedFarm,
+    setSelectedBatch,
+    isLoading: farmLoading,
+  } = useFarm();
+
+  const [pickerVisible, setPickerVisible] = useState(false);
 
   const accentClass = "text-light-accent dark:text-dark-accent";
   const subtextClass = "text-light-text-tertiary dark:text-dark-text-tertiary";
@@ -36,6 +49,94 @@ export default function HomeScreen() {
             </View>
           )}
         </Card>
+
+        {/* ── Farm / batch selector ────────────────────────────────────── */}
+        <Pressable onPress={() => setPickerVisible(true)}>
+          <Card variant="subtle">
+            <View className="flex-row items-center justify-between">
+              <View className="gap-0.5">
+                <Text variant="label">
+                  {farmLoading
+                    ? "Loading…"
+                    : selectedFarm
+                      ? selectedFarm.name
+                      : "No farm selected"}
+                </Text>
+                <Text variant="caption" className={subtextClass}>
+                  {selectedBatch ? selectedBatch.name : "No active batch"}
+                </Text>
+              </View>
+              <Text variant="caption" className={accentClass}>
+                Change ›
+              </Text>
+            </View>
+          </Card>
+        </Pressable>
+
+        {/* ── Picker modal ─────────────────────────────────────────────── */}
+        <Modal
+          visible={pickerVisible}
+          animationType="slide"
+          transparent
+          onRequestClose={() => setPickerVisible(false)}
+        >
+          <View className="flex-1 justify-end bg-black/40">
+            <View className="bg-light-surface dark:bg-dark-surface rounded-t-3xl p-6 gap-4">
+              <Text variant="heading">Select farm &amp; batch</Text>
+
+              {farms.length === 0 && (
+                <Text variant="detail" className={subtextClass}>
+                  No farms available.
+                </Text>
+              )}
+
+              {farms.map((farm) => (
+                <Pressable
+                  key={farm.id}
+                  onPress={() => setSelectedFarm(farm)}
+                >
+                  <Card
+                    variant={
+                      selectedFarm?.id === farm.id ? "default" : "subtle"
+                    }
+                  >
+                    <Text variant="label">{farm.name}</Text>
+                    <Text variant="caption" className={subtextClass}>
+                      {farm.farmType}
+                    </Text>
+                  </Card>
+                </Pressable>
+              ))}
+
+              {allBatches.length > 0 && (
+                <>
+                  <Text variant="title">Active batches</Text>
+                  {allBatches.map((batch) => (
+                    <Pressable
+                      key={batch.id}
+                      onPress={() => setSelectedBatch(batch)}
+                    >
+                      <Card
+                        variant={
+                          selectedBatch?.id === batch.id ? "default" : "subtle"
+                        }
+                      >
+                        <View className="flex-row justify-between items-center">
+                          <Text variant="label">{batch.name}</Text>
+                          <Text variant="caption" className={accentClass}>
+                            {batch.currentCount} birds
+                          </Text>
+                        </View>
+                      </Card>
+                    </Pressable>
+                  ))}
+                </>
+              )}
+
+              <Button onPress={() => setPickerVisible(false)}>Done</Button>
+            </View>
+          </View>
+        </Modal>
 
         {/* ── Sync status ──────────────────────────────────────────────── */}
         {(!isOnline || pendingCount > 0) && (

@@ -9,7 +9,6 @@ This file captures upcoming work that has not yet started.
 - Keep each task focused and outcome-based.
 
 ## Backlog
-- Add flock batch selector to mobile record/expense/sale flows (currently uses placeholder IDs).
 - Implement real authentication (replace hardcoded demo auth with JWT/session).
 - Connect desktop shell to authenticated dashboard flow and native app assets.
 - Share auth and data hooks across Expo and dashboard once web auth is introduced.

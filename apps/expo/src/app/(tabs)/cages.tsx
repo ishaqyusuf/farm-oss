@@ -3,9 +3,9 @@ import { useState } from "react";
 import { ActivityIndicator, Alert, Pressable, View } from "react-native";
 import { RoleGuard, SCREEN_ROLES } from "@/components/RoleGuard";
 import { Button, Card, Input, Screen, Text } from "@/components/ui";
-import { PLACEHOLDER_FLOCK_BATCH_ID } from "@/lib/constants";
 import { enqueue } from "@/lib/offline-queue";
 import { useAuth } from "@/providers/auth-provider";
+import { useFarm } from "@/providers/farm-provider";
 import { useSync } from "@/providers/sync-provider";
 import { useTheme } from "@/providers/theme-provider";
 import { useTRPC } from "@/trpc/client";
@@ -26,6 +26,7 @@ type ViewMode = "list" | "add" | "detail" | "production";
 
 export default function CagesScreen() {
   const { session } = useAuth();
+  const { selectedBatch } = useFarm();
   const { isDark } = useTheme();
   const { isOnline } = useSync();
   const trpc = useTRPC();
@@ -47,10 +48,13 @@ export default function CagesScreen() {
   const [prodNotes, setProdNotes] = useState("");
 
   // ── Queries ─────────────────────────────────────────────────────────
-  const cageListOpts = trpc.cageUnit.list.queryOptions({
-    flockBatchId: PLACEHOLDER_FLOCK_BATCH_ID,
-    status: "active",
-  });
+  const cageListOpts = {
+    ...trpc.cageUnit.list.queryOptions({
+      flockBatchId: selectedBatch?.id ?? "",
+      status: "active",
+    }),
+    enabled: !!selectedBatch,
+  };
 
   const cages = useQuery(cageListOpts);
 
@@ -64,9 +68,12 @@ export default function CagesScreen() {
   });
 
   // ── Cage summary query ──────────────────────────────────────────────
-  const cageSummaryOpts = trpc.cageProduction.summary.queryOptions({
-    flockBatchId: PLACEHOLDER_FLOCK_BATCH_ID,
-  });
+  const cageSummaryOpts = {
+    ...trpc.cageProduction.summary.queryOptions({
+      flockBatchId: selectedBatch?.id ?? "",
+    }),
+    enabled: !!selectedBatch,
+  };
 
   const cageSummary = useQuery(cageSummaryOpts);
 
@@ -130,8 +137,12 @@ export default function CagesScreen() {
       return;
     }
 
+    if (!selectedBatch) {
+      Alert.alert("No batch selected", "Please select an active flock batch first.");
+      return;
+    }
     const payload = {
-      flockBatchId: PLACEHOLDER_FLOCK_BATCH_ID,
+      flockBatchId: selectedBatch.id,
       label: label.trim(),
       birdCount: Number(birdCount),
       startDate: todayISO(),
