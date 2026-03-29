@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure } from "../../init";
+import { createTRPCRouter, managerProcedure, publicProcedure } from "../../init";
 
 export const flockBatchRouter = createTRPCRouter({
   list: publicProcedure
@@ -39,7 +39,7 @@ export const flockBatchRouter = createTRPCRouter({
       return batch;
     }),
 
-  create: publicProcedure
+  create: managerProcedure
     .input(
       z.object({
         farmId: z.string().uuid(),
@@ -65,7 +65,7 @@ export const flockBatchRouter = createTRPCRouter({
       return batch;
     }),
 
-  close: publicProcedure
+  close: managerProcedure
     .input(
       z.object({
         id: z.string().uuid(),

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure } from "../../init";
+import { createTRPCRouter, managerProcedure, publicProcedure } from "../../init";
 
 export const expenseRouter = createTRPCRouter({
   list: publicProcedure
@@ -24,7 +24,7 @@ export const expenseRouter = createTRPCRouter({
       return expenses;
     }),
 
-  create: publicProcedure
+  create: managerProcedure
     .input(
       z.object({
         farmId: z.string().uuid(),

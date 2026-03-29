@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure } from "../../init";
+import { createTRPCRouter, protectedProcedure, publicProcedure } from "../../init";
 
 export const cageProductionRouter = createTRPCRouter({
   list: publicProcedure
@@ -22,7 +22,7 @@ export const cageProductionRouter = createTRPCRouter({
       return records;
     }),
 
-  create: publicProcedure
+  create: protectedProcedure
     .input(
       z.object({
         cageUnitId: z.string().uuid(),

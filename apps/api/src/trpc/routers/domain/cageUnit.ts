@@ -1,5 +1,10 @@
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure } from "../../init";
+import {
+  createTRPCRouter,
+  managerProcedure,
+  ownerProcedure,
+  publicProcedure,
+} from "../../init";
 
 export const cageUnitRouter = createTRPCRouter({
   list: publicProcedure
@@ -39,7 +44,7 @@ export const cageUnitRouter = createTRPCRouter({
       return unit;
     }),
 
-  create: publicProcedure
+  create: managerProcedure
     .input(
       z.object({
         flockBatchId: z.string().uuid(),
@@ -64,7 +69,7 @@ export const cageUnitRouter = createTRPCRouter({
       return unit;
     }),
 
-  update: publicProcedure
+  update: managerProcedure
     .input(
       z.object({
         id: z.string().uuid(),
@@ -90,7 +95,7 @@ export const cageUnitRouter = createTRPCRouter({
       return unit;
     }),
 
-  delete: publicProcedure
+  delete: ownerProcedure
     .input(
       z.object({
         id: z.string().uuid(),

@@ -1,5 +1,10 @@
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure } from "../../init";
+import {
+  createTRPCRouter,
+  managerProcedure,
+  ownerProcedure,
+  publicProcedure,
+} from "../../init";
 
 export const farmRouter = createTRPCRouter({
   list: publicProcedure
@@ -37,7 +42,7 @@ export const farmRouter = createTRPCRouter({
       return farm;
     }),
 
-  create: publicProcedure
+  create: managerProcedure
     .input(
       z.object({
         tenantId: z.string().uuid(),
@@ -57,7 +62,7 @@ export const farmRouter = createTRPCRouter({
       return farm;
     }),
 
-  update: publicProcedure
+  update: managerProcedure
     .input(
       z.object({
         id: z.string().uuid(),
@@ -77,7 +82,7 @@ export const farmRouter = createTRPCRouter({
       return farm;
     }),
 
-  delete: publicProcedure
+  delete: ownerProcedure
     .input(
       z.object({
         id: z.string().uuid(),

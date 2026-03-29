@@ -1,5 +1,10 @@
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure } from "../../init";
+import {
+  createTRPCRouter,
+  managerProcedure,
+  protectedProcedure,
+  publicProcedure,
+} from "../../init";
 
 export const dailyRecordRouter = createTRPCRouter({
   list: publicProcedure
@@ -37,7 +42,7 @@ export const dailyRecordRouter = createTRPCRouter({
       return record;
     }),
 
-  create: publicProcedure
+  create: protectedProcedure
     .input(
       z.object({
         flockBatchId: z.string().uuid(),
@@ -78,7 +83,7 @@ export const dailyRecordRouter = createTRPCRouter({
       return record;
     }),
 
-  update: publicProcedure
+  update: managerProcedure
     .input(
       z.object({
         id: z.string().uuid(),
